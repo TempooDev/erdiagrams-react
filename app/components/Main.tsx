@@ -1,7 +1,7 @@
 /*
  *  Copyright (C) 1998-2023 by Northwoods Software Corporation. All Rights Reserved.
  */
-
+'use client';
 import * as go from 'gojs';
 import { produce } from 'immer';
 import * as React from 'react';
@@ -438,15 +438,7 @@ class App extends React.Component<{}, AppState> {
           onDiagramEvent={this.handleDiagramEvent}
           onModelChange={this.handleModelChange}
         />
-        <label>
-          Allow Relinking?
-          <input
-            type="checkbox"
-            id="relink"
-            checked={this.state.modelData.canRelink}
-            onChange={this.handleRelinkChange}
-          />
-        </label>
+        <label></label>
         {inspector}
       </div>
     );
