@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.2.4",
+    "@auth0/nextjs-auth0": "^3.5.0",
     "gojs": "^2.3.16",
     "gojs-react": "^1.1.2",
     "immer": "^10.0.4",

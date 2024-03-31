@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100px" height="100px" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.3 (67297) - http://www.bohemiancoding.com/sketch -->
+    <title>Avatar / Images / App Types / SPA</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Avatar-/-Images-/-App-Types-/-SPA" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect fill="none" x="0" y="0" width="100" height="100"></rect>
+        <g id="Group-2">
+            <rect id="Rectangle" x="0" y="0" width="100" height="100"></rect>
+        </g>
+        <g id="spa" transform="translate(18.750000, 18.750000)" fill-rule="nonzero">
+            <polygon id="Fill-34" fill="#44C7F4" points="25.0115825 32.2916667 43.7703068 0 18.7587244 0 0 32.2916667 18.7587244 64.5833333 43.7703068 64.5833333"></polygon>
+            <polygon id="Fill-36" fill="#EC5424" points="37.4861613 32.2916667 18.7274368 64.5833333 43.7390193 64.5833333 62.4977437 32.2916667 43.7390193 0 18.7274368 0"></polygon>
+            <polygon id="Fill-38" fill="#16214D" points="43.7390193 0 18.7274368 0 31.2332281 21.5277778"></polygon>
+            <polygon id="Fill-40" fill="#16214D" points="18.7274368 64.5833333 43.7390193 64.5833333 31.2332281 43.0555555"></polygon>
+        </g>
+    </g>
+</svg>
