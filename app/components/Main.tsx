@@ -11,11 +11,7 @@ import { SelectionInspector } from './SelectionInspector';
 
 import './Main.css';
 
-/**
- * Use a linkDataArray since we'll be using a GraphLinksModel,
- * and modelData for demonstration purposes. Note, though, that
- * both are optional props in ReactDiagram.
- */
+
 interface AppState {
   nodeDataArray: Array<go.ObjectData>;
   linkDataArray: Array<go.ObjectData>;
@@ -25,12 +21,12 @@ interface AppState {
 }
 
 class App extends React.Component<{}, AppState> {
-  // Maps to store key -> arr index for quick lookups
   private mapNodeKeyIdx: Map<go.Key, number>;
   private mapLinkKeyIdx: Map<go.Key, number>;
 
   constructor(props: object) {
     super(props);
+    //TODO: HACER STATE DINAMICO LEYENDO DE API Y POR EVENTOS DE SIGNALR
     this.state = {
       nodeDataArray: [
         {
