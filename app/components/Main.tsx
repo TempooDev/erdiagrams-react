@@ -11,13 +11,13 @@ import { SelectionInspector } from './SelectionInspector';
 
 import './Main.css';
 
-
 interface AppState {
   nodeDataArray: Array<go.ObjectData>;
   linkDataArray: Array<go.ObjectData>;
   modelData: go.ObjectData;
   selectedData: go.ObjectData | null;
   skipsDiagramUpdate: boolean;
+  newNode: go.ObjectData;
 }
 
 class App extends React.Component<{}, AppState> {
@@ -199,6 +199,19 @@ class App extends React.Component<{}, AppState> {
       },
       selectedData: null,
       skipsDiagramUpdate: false,
+      newNode: {
+        key: '',
+        visibility: true,
+        location: new go.Point(200, 350),
+        items: [
+          {
+            name: 'OrderID',
+            iskey: false,
+            figure: 'Decision',
+            color: 'purple',
+          },
+        ],
+      },
     };
     // init maps
     this.mapNodeKeyIdx = new Map<go.Key, number>();
@@ -436,6 +449,16 @@ class App extends React.Component<{}, AppState> {
         />
         <label></label>
         {inspector}
+        <div>
+          <h1>Node</h1>
+          <label>Key</label>
+          <input value={this.state.newNode.key} />
+          <label>Items</label>
+          <div>
+            <label>Name</label>
+            <input value={this.state.newNode.items.name} />
+          </div>
+        </div>
       </div>
     );
   }
