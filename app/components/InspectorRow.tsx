@@ -32,12 +32,25 @@ export class InspectorRow extends React.PureComponent<InspectorRowProps, {}> {
     }
     return loc;
   }
-
+  private formatItems(items: any): any {
+    let str = [];
+    for (let i = 0; i < items.length; i++) {
+      str.push(items[i].name);
+    }
+    return str;
+  }
   public render() {
     let val = this.props.value;
     if (this.props.id === 'loc') {
       val = this.formatLocation(this.props.value);
     }
+    if (this.props.id === 'items') {
+      val = this.formatItems(this.props.value);
+    }
+    if (this.props.id === 'inheriteditems') {
+      val = this.formatItems(this.props.value);
+    }
+
     return (
       <tr>
         <td>{this.props.id}</td>
@@ -46,7 +59,6 @@ export class InspectorRow extends React.PureComponent<InspectorRowProps, {}> {
             disabled={this.props.id === 'key'}
             value={val}
             onChange={this.handleInputChange}
-            onBlur={this.handleInputChange}
           ></input>
         </td>
       </tr>
