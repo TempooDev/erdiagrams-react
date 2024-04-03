@@ -2,11 +2,11 @@
  *  Copyright (C) 1998-2023 by Northwoods Software Corporation. All Rights Reserved.
  */
 
-import * as React from 'react';
+import * as React from "react";
 
-import { InspectorRow } from './InspectorRow';
+import { InspectorRow } from "./InspectorRow";
 
-import './Inspector.css';
+import "./Inspector.css";
 
 interface SelectionInspectorProps {
   selectedData: any;
@@ -33,10 +33,18 @@ export class SelectionInspector extends React.PureComponent<
           onInputChange={this.props.onInputChange}
         />
       );
-      if (k === 'key') {
+      if (k === "key") {
         dets.unshift(row); // key always at start
       } else {
         dets.push(row);
+      }
+      if (
+        k === "figure" ||
+        k === "color" ||
+        k === "visibility" ||
+        k === "location"
+      ) {
+        dets.pop();
       }
     }
     return dets;

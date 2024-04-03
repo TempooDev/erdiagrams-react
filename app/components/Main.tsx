@@ -501,17 +501,8 @@ class App extends React.Component<{ id: string }, AppState> {
           <div className="modal-box">
             <form method="dialog" className="modal-backdrop text-slate-50">
               {inspector}
-              <div>
-                <h1>Node</h1>
-                <label>Key</label>
-                <input value={this.state.newNode.key} />
-                <label>Items</label>
-                <div>
-                  <label>Name</label>
-                  <input value={this.state.newNode.items.name} />
-                </div>
-              </div>
-              <button>close</button>
+
+              <button>save</button>
             </form>
           </div>
         </dialog>
