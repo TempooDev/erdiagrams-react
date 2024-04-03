@@ -127,7 +127,6 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
       {
         selectionAdorned: true,
         resizable: true,
-
         fromSpot: go.Spot.LeftRightSides,
         toSpot: go.Spot.LeftRightSides,
         isShadowed: true,
@@ -146,7 +145,7 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
       $(
         go.Shape,
         "RoundedRectangle",
-        { stroke: "#e8f1ff", strokeWidth: 3 },
+        { stroke: "#e8f1ff", strokeWidth: 4 },
         new go.Binding("fill", "", (n) =>
           diagram.model.modelData.darkMode ? "#4a4a4a" : "#f7f9fc"
         )

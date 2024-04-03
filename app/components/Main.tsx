@@ -316,6 +316,10 @@ class App extends React.Component<{ id: string }, AppState> {
             }
           })
         );
+        const modal = document.getElementById(
+          "my_modal_2"
+        ) as HTMLDialogElement;
+        modal.showModal();
         break;
       }
       default:
@@ -492,17 +496,25 @@ class App extends React.Component<{ id: string }, AppState> {
           onModelChange={this.handleModelChange}
         />
         <label></label>
-        {inspector}
-        <div>
-          <h1>Node</h1>
-          <label>Key</label>
-          <input value={this.state.newNode.key} />
-          <label>Items</label>
-          <div>
-            <label>Name</label>
-            <input value={this.state.newNode.items.name} />
+
+        <dialog id="my_modal_2" className="modal">
+          <div className="modal-box">
+            <form method="dialog" className="modal-backdrop text-slate-50">
+              {inspector}
+              <div>
+                <h1>Node</h1>
+                <label>Key</label>
+                <input value={this.state.newNode.key} />
+                <label>Items</label>
+                <div>
+                  <label>Name</label>
+                  <input value={this.state.newNode.items.name} />
+                </div>
+              </div>
+              <button>close</button>
+            </form>
           </div>
-        </div>
+        </dialog>
       </div>
     );
   }
