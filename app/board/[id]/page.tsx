@@ -1,4 +1,4 @@
-import App from "@/app/components/Main";
+import App from '@/app/components/board/Board';
 
 interface HomeProps {
   params: {

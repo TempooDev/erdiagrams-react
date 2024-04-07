@@ -3,11 +3,11 @@ import * as go from 'gojs';
 import { produce } from 'immer';
 import * as React from 'react';
 
-import { DiagramWrapper } from './DiagramWrapper';
-import { SelectionInspector } from './SelectionInspector';
+import { DiagramWrapper } from '../diagram/DiagramWrapper';
+import { SelectionInspector } from '../inspector/SelectionInspector';
 
-import './Main.css';
-import diagrams, { Diagram } from '../mocks/diagrams';
+import './Board.css';
+import diagrams, { Diagram } from '../../mocks/diagrams';
 
 interface AppState {
   nodeDataArray: Array<go.ObjectData>;

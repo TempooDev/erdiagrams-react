@@ -2,13 +2,13 @@
  *  Copyright (C) 1998-2023 by Northwoods Software Corporation. All Rights Reserved.
  */
 
-import * as go from "gojs";
-import { ReactDiagram } from "gojs-react";
-import * as React from "react";
+import * as go from 'gojs';
+import { ReactDiagram } from 'gojs-react';
+import * as React from 'react';
 
-import { GuidedDraggingTool } from "../GuidedDraggingTool";
+import { GuidedDraggingTool } from '../../utils/GuidedDraggingTool';
 
-import "./Diagram.css";
+import './Diagram.css';
 
 interface DiagramProps {
   nodeDataArray: Array<go.ObjectData>;
@@ -25,7 +25,7 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
    */
   private diagramRef: React.RefObject<ReactDiagram>;
 
-  private diagramStyle = { backgroundColor: "#eee" };
+  private diagramStyle = { backgroundColor: '#eee' };
 
   /** @internal */
   constructor(props: DiagramProps) {
@@ -41,7 +41,7 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
     if (!this.diagramRef.current) return;
     const diagram = this.diagramRef.current.getDiagram();
     if (diagram instanceof go.Diagram) {
-      diagram.addDiagramListener("ChangedSelection", this.props.onDiagramEvent);
+      diagram.addDiagramListener('ChangedSelection', this.props.onDiagramEvent);
     }
   }
 
@@ -53,7 +53,7 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
     const diagram = this.diagramRef.current.getDiagram();
     if (diagram instanceof go.Diagram) {
       diagram.removeDiagramListener(
-        "ChangedSelection",
+        'ChangedSelection',
         this.props.onDiagramEvent
       );
     }
@@ -69,20 +69,20 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
     const $ = go.GraphObject.make;
     // set your license key here before creating the diagram: go.Diagram.licenseKey = "...";
     const diagram = $(go.Diagram, {
-      "undoManager.isEnabled": true, // must be set to allow for model change listening
+      'undoManager.isEnabled': true, // must be set to allow for model change listening
       // 'undoManager.maxHistoryLength': 0,  // uncomment disable undo/redo functionality
-      "clickCreatingTool.archetypeNodeData": {
-        text: "new node",
-        color: "lightblue",
+      'clickCreatingTool.archetypeNodeData': {
+        text: 'new node',
+        color: 'lightblue',
       },
       draggingTool: new GuidedDraggingTool(), // defined in GuidedDraggingTool.ts
-      "draggingTool.horizontalGuidelineColor": "blue",
-      "draggingTool.verticalGuidelineColor": "blue",
-      "draggingTool.centerGuidelineColor": "green",
-      "draggingTool.guidelineWidth": 1,
+      'draggingTool.horizontalGuidelineColor': 'blue',
+      'draggingTool.verticalGuidelineColor': 'blue',
+      'draggingTool.centerGuidelineColor': 'green',
+      'draggingTool.guidelineWidth': 1,
       layout: $(go.ForceDirectedLayout),
       model: $(go.GraphLinksModel, {
-        linkKeyProperty: "key", // IMPORTANT! must be defined for merges and data sync when using GraphLinksModel
+        linkKeyProperty: 'key', // IMPORTANT! must be defined for merges and data sync when using GraphLinksModel
         // positive keys for nodes
         makeUniqueKeyFunction: (m: go.Model, data: any) => {
           let k = data.key || 1;
@@ -101,29 +101,29 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
     });
     const itemTempl = $(
       go.Panel,
-      "Horizontal",
+      'Horizontal',
 
       $(
         go.TextBlock,
-        { font: " 14px sans-serif", stroke: "black" },
-        new go.Binding("text", "name"),
-        new go.Binding("stroke", "", (n) =>
-          diagram.model.modelData.darkMode ? "#f5f5f5" : "#000000"
+        { font: ' 14px sans-serif', stroke: 'black' },
+        new go.Binding('text', 'name'),
+        new go.Binding('stroke', '', (n) =>
+          diagram.model.modelData.darkMode ? '#f5f5f5' : '#000000'
         )
       ),
       $(
         go.TextBlock,
-        { font: " 12px sans-serif", stroke: "black" },
-        new go.Binding("text", "type", (t) => (t ? ": " + t : "")),
-        new go.Binding("stroke", "", (n) =>
-          diagram.model.modelData.darkMode ? "#f5f5f5" : "#000000"
+        { font: ' 12px sans-serif', stroke: 'black' },
+        new go.Binding('text', 'type', (t) => (t ? ': ' + t : '')),
+        new go.Binding('stroke', '', (n) =>
+          diagram.model.modelData.darkMode ? '#f5f5f5' : '#000000'
         )
       )
     );
     // define a simple Node template
     diagram.nodeTemplate = $(
       go.Node,
-      "Auto", // the whole node panel
+      'Auto', // the whole node panel
       {
         selectionAdorned: true,
         resizable: true,
@@ -131,28 +131,28 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
         toSpot: go.Spot.LeftRightSides,
         isShadowed: true,
         shadowOffset: new go.Point(4, 4),
-        shadowColor: "#919cab",
+        shadowColor: '#919cab',
       },
-      new go.Binding("location", "location").makeTwoWay(),
+      new go.Binding('location', 'location').makeTwoWay(),
       // whenever the PanelExpanderButton changes the visible property of the "LIST" panel,
       // clear out any desiredSize set by the ResizingTool.
       new go.Binding(
-        "desiredSize",
-        "visible",
+        'desiredSize',
+        'visible',
         (v) => new go.Size(NaN, NaN)
-      ).ofObject("LIST"),
+      ).ofObject('LIST'),
       // define the node's outer shape, which will surround the Table
       $(
         go.Shape,
-        "RoundedRectangle",
-        { stroke: "#e8f1ff", strokeWidth: 4 },
-        new go.Binding("fill", "", (n) =>
-          diagram.model.modelData.darkMode ? "#4a4a4a" : "#f7f9fc"
+        'RoundedRectangle',
+        { stroke: '#e8f1ff', strokeWidth: 4 },
+        new go.Binding('fill', '', (n) =>
+          diagram.model.modelData.darkMode ? '#4a4a4a' : '#f7f9fc'
         )
       ),
       $(
         go.Panel,
-        "Table",
+        'Table',
         {
           margin: 8,
           stretch: go.GraphObject.Fill,
@@ -169,99 +169,99 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
             row: 0,
             alignment: go.Spot.Center,
             margin: new go.Margin(0, 24, 0, 2), // leave room for Button
-            font: "bold 16px sans-serif",
+            font: 'bold 16px sans-serif',
           },
-          new go.Binding("text", "key"),
-          new go.Binding("stroke", "", (n) =>
-            diagram.model.modelData.darkMode ? "#d6d6d6" : "#000000"
+          new go.Binding('text', 'key'),
+          new go.Binding('stroke', '', (n) =>
+            diagram.model.modelData.darkMode ? '#d6d6d6' : '#000000'
           )
         ),
         // the collapse/expand button
         $(
-          "PanelExpanderButton",
-          "LIST", // the name of the element whose visibility this button toggles
+          'PanelExpanderButton',
+          'LIST', // the name of the element whose visibility this button toggles
           { row: 0, alignment: go.Spot.TopRight },
-          new go.Binding("ButtonIcon.stroke", "", (n) =>
-            diagram.model.modelData.darkMode ? "#d6d6d6" : "#000000"
+          new go.Binding('ButtonIcon.stroke', '', (n) =>
+            diagram.model.modelData.darkMode ? '#d6d6d6' : '#000000'
           )
         ),
         $(
           go.Panel,
-          "Table",
-          { name: "LIST", row: 1, stretch: go.GraphObject.Horizontal },
+          'Table',
+          { name: 'LIST', row: 1, stretch: go.GraphObject.Horizontal },
           $(
             go.TextBlock,
             {
-              font: "bold 15px sans-serif",
-              text: "Attributes",
+              font: 'bold 15px sans-serif',
+              text: 'Attributes',
               row: 0,
               alignment: go.Spot.TopLeft,
               margin: new go.Margin(8, 0, 0, 0),
             },
-            new go.Binding("stroke", "", (n) =>
-              diagram.model.modelData.darkMode ? "#d6d6d6" : "#000000"
+            new go.Binding('stroke', '', (n) =>
+              diagram.model.modelData.darkMode ? '#d6d6d6' : '#000000'
             )
           ),
           $(
-            "PanelExpanderButton",
-            "NonInherited", // the name of the element whose visibility this button toggles
+            'PanelExpanderButton',
+            'NonInherited', // the name of the element whose visibility this button toggles
             {
               row: 0,
               column: 1,
             },
-            new go.Binding("ButtonIcon.stroke", "", (n) =>
-              diagram.model.modelData.darkMode ? "#d6d6d6" : "#000000"
+            new go.Binding('ButtonIcon.stroke', '', (n) =>
+              diagram.model.modelData.darkMode ? '#d6d6d6' : '#000000'
             )
           ),
           $(
             go.Panel,
-            "Vertical",
+            'Vertical',
             {
-              name: "NonInherited",
+              name: 'NonInherited',
               alignment: go.Spot.TopLeft,
               defaultAlignment: go.Spot.Left,
               itemTemplate: itemTempl,
               row: 1,
             },
-            new go.Binding("itemArray", "items")
+            new go.Binding('itemArray', 'items')
           ),
           $(
             go.TextBlock,
             {
-              font: "bold 15px sans-serif",
-              text: "Inherited Attributes",
+              font: 'bold 15px sans-serif',
+              text: 'Inherited Attributes',
               row: 2,
               alignment: go.Spot.TopLeft,
               margin: new go.Margin(8, 0, 0, 0),
             },
-            new go.Binding("visible", "visibility", Boolean),
-            new go.Binding("stroke", "", (n) =>
-              diagram.model.modelData.darkMode ? "#d6d6d6" : "#000000"
+            new go.Binding('visible', 'visibility', Boolean),
+            new go.Binding('stroke', '', (n) =>
+              diagram.model.modelData.darkMode ? '#d6d6d6' : '#000000'
             )
           ),
           $(
-            "PanelExpanderButton",
-            "Inherited", // the name of the element whose visibility this button toggles
+            'PanelExpanderButton',
+            'Inherited', // the name of the element whose visibility this button toggles
             {
               row: 2,
               column: 1,
             },
-            new go.Binding("visible", "visibility", Boolean),
-            new go.Binding("ButtonIcon.stroke", "", (n) =>
-              diagram.model.modelData.darkMode ? "#d6d6d6" : "#000000"
+            new go.Binding('visible', 'visibility', Boolean),
+            new go.Binding('ButtonIcon.stroke', '', (n) =>
+              diagram.model.modelData.darkMode ? '#d6d6d6' : '#000000'
             )
           ),
           $(
             go.Panel,
-            "Vertical",
+            'Vertical',
             {
-              name: "Inherited",
+              name: 'Inherited',
               alignment: go.Spot.TopLeft,
               defaultAlignment: go.Spot.Left,
               itemTemplate: itemTempl,
               row: 3,
             },
-            new go.Binding("itemArray", "inheriteditems")
+            new go.Binding('itemArray', 'inheriteditems')
           )
         )
       ) // end Table Panel
@@ -272,66 +272,66 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
       go.Link, // the whole link panel
       {
         selectionAdorned: true,
-        layerName: "Background",
+        layerName: 'Background',
         reshapable: true,
         routing: go.Link.AvoidsNodes,
         corner: 5,
         curve: go.Link.JumpOver,
         isShadowed: true,
         shadowOffset: new go.Point(2, 2),
-        shadowColor: "#919cab",
+        shadowColor: '#919cab',
       },
       $(
         go.Shape, // the link shape
-        { stroke: "#f7f9fc", strokeWidth: 4 }
+        { stroke: '#f7f9fc', strokeWidth: 4 }
       ),
       $(
         go.Panel,
-        "Auto",
+        'Auto',
         { segmentIndex: 0, segmentOffset: new go.Point(22, 0) },
         $(
           go.Shape,
-          "RoundedRectangle",
-          { fill: "#f7f9fc" },
-          { stroke: "#eeeeee" }
+          'RoundedRectangle',
+          { fill: '#f7f9fc' },
+          { stroke: '#eeeeee' }
         ),
         $(
           go.TextBlock, // the "from" label
           {
-            textAlign: "center",
-            font: "bold 14px sans-serif",
-            stroke: "black",
-            background: "#f7f9fc",
+            textAlign: 'center',
+            font: 'bold 14px sans-serif',
+            stroke: 'black',
+            background: '#f7f9fc',
             segmentOffset: new go.Point(NaN, NaN),
             segmentOrientation: go.Link.OrientUpright,
           },
-          new go.Binding("text", "text")
+          new go.Binding('text', 'text')
         )
       ),
       $(
         go.Panel,
-        "Auto",
+        'Auto',
         {
           segmentIndex: -1,
           segmentOffset: new go.Point(-13, 0),
         },
         $(
           go.Shape,
-          "RoundedRectangle",
-          { fill: "#edf6fc" },
-          { stroke: "#eeeeee" }
+          'RoundedRectangle',
+          { fill: '#edf6fc' },
+          { stroke: '#eeeeee' }
         ),
         $(
           go.TextBlock, // the "to" label
           {
-            textAlign: "center",
-            font: "bold 14px sans-serif",
-            stroke: "black",
+            textAlign: 'center',
+            font: 'bold 14px sans-serif',
+            stroke: 'black',
             segmentIndex: -1,
             segmentOffset: new go.Point(NaN, NaN),
             segmentOrientation: go.Link.OrientUpright,
           },
-          new go.Binding("text", "toText")
+          new go.Binding('text', 'toText')
         )
       )
     );

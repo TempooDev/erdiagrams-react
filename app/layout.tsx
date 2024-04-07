@@ -1,15 +1,17 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import Image from "next/image";
-import Link from "next/link";
-import { UserProvider } from "@auth0/nextjs-auth0/client";
-import UserTabMenu from "./components/UserTabMenu";
-const inter = Inter({ subsets: ["latin"] });
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import Image from 'next/image';
+import Link from 'next/link';
+import { UserProvider } from '@auth0/nextjs-auth0/client';
+import UserTabMenu from './components/UserTabMenu';
+import { Provider } from 'react-redux';
+import store from './store/store';
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "ERDiagrams",
-  description: "Collaborative E-R Diagram tool",
+  title: 'ERDiagrams',
+  description: 'Collaborative E-R Diagram tool',
 };
 
 export default function RootLayout({
@@ -23,14 +25,14 @@ export default function RootLayout({
         <body className={inter.className}>
           <div className="navbar bg-base-100">
             <div className="flex-1">
-              <Link className="btn btn-ghost text-xl" href={"/"}>
+              <Link className="btn btn-ghost text-xl" href={'/'}>
                 ERDiagrams
               </Link>
             </div>
             <div className="flex-none">
               <ul className="menu menu-horizontal px-1">
                 <li>
-                  <Link href={"/board"}>New Board</Link>
+                  <Link href={'/board'}>New Board</Link>
                 </li>
               </ul>
               <UserTabMenu />
@@ -41,8 +43,7 @@ export default function RootLayout({
               </ul>
             </div>
           </div>
-
-          {children}
+          <Provider store={store}>{children}</Provider>
         </body>
       </UserProvider>
     </html>
