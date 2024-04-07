@@ -1,13 +1,13 @@
-"use client";
-import * as go from "gojs";
-import { produce } from "immer";
-import * as React from "react";
+'use client';
+import * as go from 'gojs';
+import { produce } from 'immer';
+import * as React from 'react';
 
-import { DiagramWrapper } from "./DiagramWrapper";
-import { SelectionInspector } from "./SelectionInspector";
+import { DiagramWrapper } from './DiagramWrapper';
+import { SelectionInspector } from './SelectionInspector';
 
-import "./Main.css";
-import diagrams, { Diagram } from "../mocks/diagrams";
+import './Main.css';
+import diagrams, { Diagram } from '../mocks/diagrams';
 
 interface AppState {
   nodeDataArray: Array<go.ObjectData>;
@@ -24,7 +24,7 @@ class App extends React.Component<{ id: string }, AppState> {
   diagram: Diagram;
   constructor(props: any) {
     super(props);
-    let id = this.props.id ? this.props.id : "123";
+    let id = this.props.id ? this.props.id : '123';
     this.diagram = getDiagram(id);
     if (this.diagram) {
       this.state = {
@@ -36,15 +36,15 @@ class App extends React.Component<{ id: string }, AppState> {
         selectedData: null,
         skipsDiagramUpdate: false,
         newNode: {
-          key: "",
+          key: '',
           visibility: true,
           location: new go.Point(200, 350),
           items: [
             {
-              name: "OrderID",
+              name: 'OrderID',
               iskey: false,
-              figure: "Decision",
-              color: "purple",
+              figure: 'Decision',
+              color: 'purple',
             },
           ],
         },
@@ -53,184 +53,184 @@ class App extends React.Component<{ id: string }, AppState> {
       this.state = {
         nodeDataArray: [
           {
-            key: "Products",
+            key: 'Products',
             visibility: true,
             location: new go.Point(250, 250),
             items: [
               {
-                name: "ProductID",
+                name: 'ProductID',
                 iskey: true,
-                figure: "Decision",
-                color: "purple",
+                figure: 'Decision',
+                color: 'purple',
               },
               {
-                name: "ProductName",
+                name: 'ProductName',
                 iskey: false,
-                figure: "Hexagon",
-                color: "blue",
+                figure: 'Hexagon',
+                color: 'blue',
               },
               {
-                name: "ItemDescription",
+                name: 'ItemDescription',
                 iskey: false,
-                figure: "Hexagon",
-                color: "blue",
+                figure: 'Hexagon',
+                color: 'blue',
               },
               {
-                name: "WholesalePrice",
+                name: 'WholesalePrice',
                 iskey: false,
-                figure: "Circle",
-                color: "green",
+                figure: 'Circle',
+                color: 'green',
               },
               {
-                name: "ProductPhoto",
+                name: 'ProductPhoto',
                 iskey: false,
-                figure: "TriangleUp",
-                color: "red",
+                figure: 'TriangleUp',
+                color: 'red',
               },
             ],
             inheriteditems: [
               {
-                name: "SupplierID",
+                name: 'SupplierID',
                 iskey: false,
-                figure: "Decision",
-                color: "purple",
+                figure: 'Decision',
+                color: 'purple',
               },
               {
-                name: "CategoryID",
+                name: 'CategoryID',
                 iskey: false,
-                figure: "Decision",
-                color: "purple",
+                figure: 'Decision',
+                color: 'purple',
               },
             ],
           },
           {
-            key: "Suppliers",
+            key: 'Suppliers',
             visibility: false,
             location: new go.Point(500, 0),
             items: [
               {
-                name: "SupplierID",
+                name: 'SupplierID',
                 iskey: true,
-                figure: "Decision",
-                color: "purple",
+                figure: 'Decision',
+                color: 'purple',
               },
               {
-                name: "CompanyName",
+                name: 'CompanyName',
                 iskey: false,
-                figure: "Hexagon",
-                color: "blue",
+                figure: 'Hexagon',
+                color: 'blue',
               },
               {
-                name: "ContactName",
+                name: 'ContactName',
                 iskey: false,
-                figure: "Hexagon",
-                color: "blue",
+                figure: 'Hexagon',
+                color: 'blue',
               },
               {
-                name: "Address",
+                name: 'Address',
                 iskey: false,
-                figure: "Hexagon",
-                color: "blue",
+                figure: 'Hexagon',
+                color: 'blue',
               },
               {
-                name: "ShippingDistance",
+                name: 'ShippingDistance',
                 iskey: false,
-                figure: "Circle",
-                color: "green",
+                figure: 'Circle',
+                color: 'green',
               },
               {
-                name: "Logo",
+                name: 'Logo',
                 iskey: false,
-                figure: "TriangleUp",
-                color: "red",
+                figure: 'TriangleUp',
+                color: 'red',
               },
             ],
             inheriteditems: [],
           },
           {
-            key: "Categories",
+            key: 'Categories',
             visibility: true,
             location: new go.Point(0, 30),
             items: [
               {
-                name: "CategoryID",
+                name: 'CategoryID',
                 iskey: true,
-                figure: "Decision",
-                color: "purple",
+                figure: 'Decision',
+                color: 'purple',
               },
               {
-                name: "CategoryName",
+                name: 'CategoryName',
                 iskey: false,
-                figure: "Hexagon",
-                color: "blue",
+                figure: 'Hexagon',
+                color: 'blue',
               },
               {
-                name: "Description",
+                name: 'Description',
                 iskey: false,
-                figure: "Hexagon",
-                color: "blue",
+                figure: 'Hexagon',
+                color: 'blue',
               },
               {
-                name: "Icon",
+                name: 'Icon',
                 iskey: false,
-                figure: "TriangleUp",
-                color: "red",
+                figure: 'TriangleUp',
+                color: 'red',
               },
             ],
             inheriteditems: [
               {
-                name: "SupplierID",
+                name: 'SupplierID',
                 iskey: false,
-                figure: "Decision",
-                color: "purple",
+                figure: 'Decision',
+                color: 'purple',
               },
             ],
           },
           {
-            key: "Order Details",
+            key: 'Order Details',
             visibility: true,
             location: new go.Point(600, 350),
             items: [
               {
-                name: "OrderID",
+                name: 'OrderID',
                 iskey: true,
-                figure: "Decision",
-                color: "purple",
+                figure: 'Decision',
+                color: 'purple',
               },
               {
-                name: "UnitPrice",
+                name: 'UnitPrice',
                 iskey: false,
-                figure: "Circle",
-                color: "green",
+                figure: 'Circle',
+                color: 'green',
               },
               {
-                name: "Quantity",
+                name: 'Quantity',
                 iskey: false,
-                figure: "Circle",
-                color: "green",
+                figure: 'Circle',
+                color: 'green',
               },
               {
-                name: "Discount",
+                name: 'Discount',
                 iskey: false,
-                figure: "Circle",
-                color: "green",
+                figure: 'Circle',
+                color: 'green',
               },
             ],
             inheriteditems: [
               {
-                name: "ProductID",
+                name: 'ProductID',
                 iskey: true,
-                figure: "Decision",
-                color: "purple",
+                figure: 'Decision',
+                color: 'purple',
               },
             ],
           },
         ],
         linkDataArray: [
-          { from: "Products", to: "Suppliers", text: "0..N", toText: "1" },
-          { from: "Products", to: "Categories", text: "0..N", toText: "1" },
-          { from: "Order Details", to: "Products", text: "0..N", toText: "1" },
-          { from: "Categories", to: "Suppliers", text: "0..N", toText: "1" },
+          { from: 'Products', to: 'Suppliers', text: '0..N', toText: '1' },
+          { from: 'Products', to: 'Categories', text: '0..N', toText: '1' },
+          { from: 'Order Details', to: 'Products', text: '0..N', toText: '1' },
+          { from: 'Categories', to: 'Suppliers', text: '0..N', toText: '1' },
         ],
         modelData: {
           canRelink: true,
@@ -238,15 +238,15 @@ class App extends React.Component<{ id: string }, AppState> {
         selectedData: null,
         skipsDiagramUpdate: false,
         newNode: {
-          key: "",
+          key: '',
           visibility: true,
           location: new go.Point(200, 350),
           items: [
             {
-              name: "OrderID",
+              name: 'OrderID',
               iskey: false,
-              figure: "Decision",
-              color: "purple",
+              figure: 'Decision',
+              color: 'purple',
             },
           ],
         },
@@ -293,7 +293,7 @@ class App extends React.Component<{ id: string }, AppState> {
   public handleDiagramEvent(e: go.DiagramEvent) {
     const name = e.name;
     switch (name) {
-      case "ChangedSelection": {
+      case 'ChangedSelection': {
         const sel = e.subject.first();
         this.setState(
           produce((draft: AppState) => {
@@ -317,7 +317,7 @@ class App extends React.Component<{ id: string }, AppState> {
           })
         );
         const modal = document.getElementById(
-          "my_modal_2"
+          'my_modal_2'
         ) as HTMLDialogElement;
         modal.showModal();
         break;
