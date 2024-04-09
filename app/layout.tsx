@@ -6,9 +6,10 @@ import Link from 'next/link';
 import { UserProvider } from '@auth0/nextjs-auth0/client';
 import UserTabMenu from './components/UserTabMenu';
 import { Provider } from 'react-redux';
-import store from './store';
 const inter = Inter({ subsets: ['latin'] });
+import configureStore from './store';
 
+const store = configureStore();
 export const metadata: Metadata = {
   title: 'ERDiagrams',
   description: 'Collaborative E-R Diagram tool',

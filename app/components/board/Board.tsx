@@ -20,7 +20,7 @@ import {
 import { changeInspected, editInspected } from '@/app/store/inspector/action';
 import { AppState } from '@/app/store';
 //todo:revisar batch si es necesario
-import { batch } from 'react-redux';
+import { batch, connect } from 'react-redux';
 import { KeyService } from '@/app/utils/KeyServices';
 
 interface StateProps {
@@ -44,7 +44,7 @@ interface DispatchProps {
   editInspected: typeof editInspected;
 }
 
-type DiagramProps = StateProps & DispatchProps & { id?: string };
+type DiagramProps = StateProps & DispatchProps;
 
 const mapStateToProps = (state: AppState): StateProps => {
   return {
@@ -71,11 +71,8 @@ const actionCreators = {
 class Board extends React.Component<DiagramProps> {
   private mapNodeKeyIdx: Map<go.Key, number>;
   private mapLinkKeyIdx: Map<go.Key, number>;
-  diagram: Diagram;
   constructor(props: any) {
     super(props);
-    let id = this.props.id ? this.props.id : '123';
-    this.diagram = getDiagram(id);
 
     // init maps
     this.mapNodeKeyIdx = new Map<go.Key, number>();
@@ -305,13 +302,9 @@ class Board extends React.Component<DiagramProps> {
         />
       );
     }
-    let diagramName;
-    if (this.diagram) {
-      diagramName = <h1>{this.diagram.name}</h1>;
-    }
+
     return (
       <div>
-        {diagramName}
         <DiagramWrapper
           nodeDataArray={this.props.nodeDataArray}
           linkDataArray={this.props.linkDataArray}
@@ -336,7 +329,6 @@ class Board extends React.Component<DiagramProps> {
   }
 }
 
-export default Board;
 function getDiagram(id: any) {
   let diagram = diagrams.find((diagram) => diagram.id === id);
 
@@ -351,3 +343,4 @@ function __mapLocation(diagram: any) {
   }
   return diagram;
 }
+export default connect(mapStateToProps, actionCreators)(Board);
