@@ -8,17 +8,68 @@ import { SelectionInspector } from '../inspector/SelectionInspector';
 
 import './Board.css';
 import diagrams, { Diagram } from '../../mocks/diagrams';
+import {
+  insertLink,
+  insertNode,
+  modifyLink,
+  modifyModel,
+  modifyNode,
+  removeLinks,
+  removeNodes,
+  setSkips,
+} from '@/app/store/diagram/actions';
+import { changeInspected, editInspected } from '@/app/store/inspector/action';
+import { AppState } from '@/app/store';
+//todo:revisar batch si es necesario
+import { batch } from 'react-redux';
+import { KeyService } from '@/app/utils/KeyServices';
 
-interface AppState {
+interface StateProps {
   nodeDataArray: Array<go.ObjectData>;
   linkDataArray: Array<go.ObjectData>;
   modelData: go.ObjectData;
-  selectedData: go.ObjectData | null;
   skipsDiagramUpdate: boolean;
-  newNode: go.ObjectData;
+  selectedData: go.ObjectData | null;
 }
 
-class App extends React.Component<{ id: string }, AppState> {
+interface DispatchProps {
+  insertLink: typeof insertLink;
+  insertNode: typeof insertNode;
+  modifyLink: typeof modifyLink;
+  modifyModel: typeof modifyModel;
+  modifyNode: typeof modifyNode;
+  removeLinks: typeof removeLinks;
+  removeNodes: typeof removeNodes;
+  setSkips: typeof setSkips;
+  changeInspected: typeof changeInspected;
+  editInspected: typeof editInspected;
+}
+
+type DiagramProps = StateProps & DispatchProps & { id?: string };
+
+const mapStateToProps = (state: AppState): StateProps => {
+  return {
+    nodeDataArray: state.diagram.nodeDataArray,
+    linkDataArray: state.diagram.linkDataArray,
+    modelData: state.diagram.modelData,
+    skipsDiagramUpdate: state.diagram.skipsDiagramUpdate,
+    selectedData: state.inspector.selectedData,
+  };
+};
+
+const actionCreators = {
+  insertLink,
+  insertNode,
+  modifyLink,
+  modifyModel,
+  modifyNode,
+  removeLinks,
+  removeNodes,
+  setSkips,
+  changeInspected,
+  editInspected,
+};
+class App extends React.Component<DiagramProps> {
   private mapNodeKeyIdx: Map<go.Key, number>;
   private mapLinkKeyIdx: Map<go.Key, number>;
   diagram: Diagram;
@@ -26,240 +77,14 @@ class App extends React.Component<{ id: string }, AppState> {
     super(props);
     let id = this.props.id ? this.props.id : '123';
     this.diagram = getDiagram(id);
-    if (this.diagram) {
-      this.state = {
-        nodeDataArray: this.diagram.nodeDataArray,
-        linkDataArray: this.diagram.linkDataArray,
-        modelData: {
-          canRelink: true,
-        },
-        selectedData: null,
-        skipsDiagramUpdate: false,
-        newNode: {
-          key: '',
-          visibility: true,
-          location: new go.Point(200, 350),
-          items: [
-            {
-              name: 'OrderID',
-              iskey: false,
-              figure: 'Decision',
-              color: 'purple',
-            },
-          ],
-        },
-      };
-    } else {
-      this.state = {
-        nodeDataArray: [
-          {
-            key: 'Products',
-            visibility: true,
-            location: new go.Point(250, 250),
-            items: [
-              {
-                name: 'ProductID',
-                iskey: true,
-                figure: 'Decision',
-                color: 'purple',
-              },
-              {
-                name: 'ProductName',
-                iskey: false,
-                figure: 'Hexagon',
-                color: 'blue',
-              },
-              {
-                name: 'ItemDescription',
-                iskey: false,
-                figure: 'Hexagon',
-                color: 'blue',
-              },
-              {
-                name: 'WholesalePrice',
-                iskey: false,
-                figure: 'Circle',
-                color: 'green',
-              },
-              {
-                name: 'ProductPhoto',
-                iskey: false,
-                figure: 'TriangleUp',
-                color: 'red',
-              },
-            ],
-            inheriteditems: [
-              {
-                name: 'SupplierID',
-                iskey: false,
-                figure: 'Decision',
-                color: 'purple',
-              },
-              {
-                name: 'CategoryID',
-                iskey: false,
-                figure: 'Decision',
-                color: 'purple',
-              },
-            ],
-          },
-          {
-            key: 'Suppliers',
-            visibility: false,
-            location: new go.Point(500, 0),
-            items: [
-              {
-                name: 'SupplierID',
-                iskey: true,
-                figure: 'Decision',
-                color: 'purple',
-              },
-              {
-                name: 'CompanyName',
-                iskey: false,
-                figure: 'Hexagon',
-                color: 'blue',
-              },
-              {
-                name: 'ContactName',
-                iskey: false,
-                figure: 'Hexagon',
-                color: 'blue',
-              },
-              {
-                name: 'Address',
-                iskey: false,
-                figure: 'Hexagon',
-                color: 'blue',
-              },
-              {
-                name: 'ShippingDistance',
-                iskey: false,
-                figure: 'Circle',
-                color: 'green',
-              },
-              {
-                name: 'Logo',
-                iskey: false,
-                figure: 'TriangleUp',
-                color: 'red',
-              },
-            ],
-            inheriteditems: [],
-          },
-          {
-            key: 'Categories',
-            visibility: true,
-            location: new go.Point(0, 30),
-            items: [
-              {
-                name: 'CategoryID',
-                iskey: true,
-                figure: 'Decision',
-                color: 'purple',
-              },
-              {
-                name: 'CategoryName',
-                iskey: false,
-                figure: 'Hexagon',
-                color: 'blue',
-              },
-              {
-                name: 'Description',
-                iskey: false,
-                figure: 'Hexagon',
-                color: 'blue',
-              },
-              {
-                name: 'Icon',
-                iskey: false,
-                figure: 'TriangleUp',
-                color: 'red',
-              },
-            ],
-            inheriteditems: [
-              {
-                name: 'SupplierID',
-                iskey: false,
-                figure: 'Decision',
-                color: 'purple',
-              },
-            ],
-          },
-          {
-            key: 'Order Details',
-            visibility: true,
-            location: new go.Point(600, 350),
-            items: [
-              {
-                name: 'OrderID',
-                iskey: true,
-                figure: 'Decision',
-                color: 'purple',
-              },
-              {
-                name: 'UnitPrice',
-                iskey: false,
-                figure: 'Circle',
-                color: 'green',
-              },
-              {
-                name: 'Quantity',
-                iskey: false,
-                figure: 'Circle',
-                color: 'green',
-              },
-              {
-                name: 'Discount',
-                iskey: false,
-                figure: 'Circle',
-                color: 'green',
-              },
-            ],
-            inheriteditems: [
-              {
-                name: 'ProductID',
-                iskey: true,
-                figure: 'Decision',
-                color: 'purple',
-              },
-            ],
-          },
-        ],
-        linkDataArray: [
-          { from: 'Products', to: 'Suppliers', text: '0..N', toText: '1' },
-          { from: 'Products', to: 'Categories', text: '0..N', toText: '1' },
-          { from: 'Order Details', to: 'Products', text: '0..N', toText: '1' },
-          { from: 'Categories', to: 'Suppliers', text: '0..N', toText: '1' },
-        ],
-        modelData: {
-          canRelink: true,
-        },
-        selectedData: null,
-        skipsDiagramUpdate: false,
-        newNode: {
-          key: '',
-          visibility: true,
-          location: new go.Point(200, 350),
-          items: [
-            {
-              name: 'OrderID',
-              iskey: false,
-              figure: 'Decision',
-              color: 'purple',
-            },
-          ],
-        },
-      };
-    }
 
     // init maps
     this.mapNodeKeyIdx = new Map<go.Key, number>();
     this.mapLinkKeyIdx = new Map<go.Key, number>();
-    this.refreshNodeIndex(this.state.nodeDataArray);
-    this.refreshLinkIndex(this.state.linkDataArray);
+    this.refreshNodeIndex(this.props.nodeDataArray);
+    this.refreshLinkIndex(this.props.linkDataArray);
     // bind handler methods
-    this.handleDiagramEvent = this.handleDiagramEvent.bind(this);
+    this.handleDiagramChange = this.handleDiagramChange.bind(this);
     this.handleModelChange = this.handleModelChange.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleRelinkChange = this.handleRelinkChange.bind(this);
@@ -290,36 +115,34 @@ class App extends React.Component<{ id: string }, AppState> {
    * On ChangedSelection, find the corresponding data and set the selectedData state.
    * @param e a GoJS DiagramEvent
    */
-  public handleDiagramEvent(e: go.DiagramEvent) {
+
+  public handleDiagramChange(e: go.DiagramEvent) {
     const name = e.name;
     switch (name) {
       case 'ChangedSelection': {
         const sel = e.subject.first();
-        this.setState(
-          produce((draft: AppState) => {
-            if (sel) {
-              if (sel instanceof go.Node) {
-                const idx = this.mapNodeKeyIdx.get(sel.key);
-                if (idx !== undefined && idx >= 0) {
-                  const nd = draft.nodeDataArray[idx];
-                  draft.selectedData = nd;
-                }
-              } else if (sel instanceof go.Link) {
-                const idx = this.mapLinkKeyIdx.get(sel.key);
-                if (idx !== undefined && idx >= 0) {
-                  const ld = draft.linkDataArray[idx];
-                  draft.selectedData = ld;
-                }
-              }
-            } else {
-              draft.selectedData = null;
+        if (sel) {
+          if (sel instanceof go.Node) {
+            const idx = this.mapNodeKeyIdx.get(sel.key);
+            if (idx !== undefined && idx >= 0) {
+              const nd = this.props.nodeDataArray[idx];
+              this.props.changeInspected(nd);
             }
-          })
-        );
+          } else if (sel instanceof go.Link) {
+            const idx = this.mapLinkKeyIdx.get(sel.key);
+            if (idx !== undefined && idx >= 0) {
+              const ld = this.props.linkDataArray[idx];
+              this.props.changeInspected(ld);
+            }
+          }
+        } else {
+          this.props.changeInspected(null);
+        }
         const modal = document.getElementById(
           'my_modal_2'
         ) as HTMLDialogElement;
         modal.showModal();
+
         break;
       }
       default:
@@ -344,84 +167,77 @@ class App extends React.Component<{ id: string }, AppState> {
     // maintain maps of modified data so insertions don't need slow lookups
     const modifiedNodeMap = new Map<go.Key, go.ObjectData>();
     const modifiedLinkMap = new Map<go.Key, go.ObjectData>();
-    this.setState(
-      produce((draft: AppState) => {
-        let narr = draft.nodeDataArray;
-        if (modifiedNodeData) {
-          modifiedNodeData.forEach((nd: go.ObjectData) => {
-            modifiedNodeMap.set(nd.key, nd);
-            const idx = this.mapNodeKeyIdx.get(nd.key);
-            if (idx !== undefined && idx >= 0) {
-              narr[idx] = nd;
-              if (draft.selectedData && draft.selectedData.key === nd.key) {
-                draft.selectedData = nd;
-              }
+    batch(() => {
+      const narr = this.props.nodeDataArray;
+      if (modifiedNodeData) {
+        modifiedNodeData.forEach((nd: go.ObjectData) => {
+          modifiedNodeMap.set(nd.key, nd);
+          const idx = this.mapNodeKeyIdx.get(nd.key);
+          if (idx !== undefined && idx >= 0) {
+            this.props.modifyNode(idx, nd);
+            if (
+              this.props.selectedData &&
+              this.props.selectedData.key === nd.key
+            ) {
+              this.props.changeInspected(nd);
             }
-          });
-        }
-        if (insertedNodeKeys) {
-          insertedNodeKeys.forEach((key: go.Key) => {
-            const nd = modifiedNodeMap.get(key);
-            const idx = this.mapNodeKeyIdx.get(key);
-            if (nd && idx === undefined) {
-              // nodes won't be added if they already exist
-              this.mapNodeKeyIdx.set(nd.key, narr.length);
-              narr.push(nd);
+          }
+        });
+      }
+      if (insertedNodeKeys) {
+        insertedNodeKeys.forEach((key: go.Key) => {
+          const nd = modifiedNodeMap.get(key);
+          const idx = this.mapNodeKeyIdx.get(key);
+          if (nd && idx === undefined) {
+            this.mapNodeKeyIdx.set(nd.key, narr.length);
+            this.props.insertNode(nd);
+          }
+        });
+      }
+      if (removedNodeKeys) {
+        this.props.removeNodes(
+          removedNodeKeys,
+          this.refreshNodeIndex.bind(this)
+        );
+      }
+      const larr = this.props.linkDataArray;
+      if (modifiedLinkData) {
+        modifiedLinkData.forEach((ld: go.ObjectData) => {
+          modifiedLinkMap.set(ld.key, ld);
+          const idx = this.mapLinkKeyIdx.get(ld.key);
+          if (idx !== undefined && idx >= 0) {
+            this.props.modifyLink(idx, ld);
+            if (
+              this.props.selectedData &&
+              this.props.selectedData.key === ld.key
+            ) {
+              this.props.changeInspected(ld);
             }
-          });
-        }
-        if (removedNodeKeys) {
-          narr = narr.filter((nd: go.ObjectData) => {
-            if (removedNodeKeys.includes(nd.key)) {
-              return false;
-            }
-            return true;
-          });
-          draft.nodeDataArray = narr;
-          this.refreshNodeIndex(narr);
-        }
-
-        let larr = draft.linkDataArray;
-        if (modifiedLinkData) {
-          modifiedLinkData.forEach((ld: go.ObjectData) => {
-            modifiedLinkMap.set(ld.key, ld);
-            const idx = this.mapLinkKeyIdx.get(ld.key);
-            if (idx !== undefined && idx >= 0) {
-              larr[idx] = ld;
-              if (draft.selectedData && draft.selectedData.key === ld.key) {
-                draft.selectedData = ld;
-              }
-            }
-          });
-        }
-        if (insertedLinkKeys) {
-          insertedLinkKeys.forEach((key: go.Key) => {
-            const ld = modifiedLinkMap.get(key);
-            const idx = this.mapLinkKeyIdx.get(key);
-            if (ld && idx === undefined) {
-              // links won't be added if they already exist
-              this.mapLinkKeyIdx.set(ld.key, larr.length);
-              larr.push(ld);
-            }
-          });
-        }
-        if (removedLinkKeys) {
-          larr = larr.filter((ld: go.ObjectData) => {
-            if (removedLinkKeys.includes(ld.key)) {
-              return false;
-            }
-            return true;
-          });
-          draft.linkDataArray = larr;
-          this.refreshLinkIndex(larr);
-        }
-        // handle model data changes, for now just replacing with the supplied object
-        if (modifiedModelData) {
-          draft.modelData = modifiedModelData;
-        }
-        draft.skipsDiagramUpdate = true; // the GoJS model already knows about these updates
-      })
-    );
+          }
+        });
+      }
+      if (insertedLinkKeys) {
+        insertedLinkKeys.forEach((key: go.Key) => {
+          const ld = modifiedLinkMap.get(key);
+          const idx = this.mapLinkKeyIdx.get(key);
+          if (ld && idx === undefined) {
+            this.mapLinkKeyIdx.set(ld.key, larr.length);
+            this.props.insertLink(ld);
+          }
+        });
+      }
+      if (removedLinkKeys) {
+        this.props.removeLinks(
+          removedLinkKeys,
+          this.refreshLinkIndex.bind(this)
+        );
+      }
+      // handle model data changes, for now just replacing with the supplied object
+      if (modifiedModelData) {
+        this.props.modifyModel(modifiedModelData);
+      }
+      this.props.setSkips(true); // the GoJS model already knows about these updates
+    });
   }
 
   /**
@@ -431,29 +247,29 @@ class App extends React.Component<{ id: string }, AppState> {
    * @param isBlur whether the input event was a blur, indicating the edit is complete
    */
   public handleInputChange(path: string, value: string, isBlur: boolean) {
-    this.setState(
-      produce((draft: AppState) => {
-        const data = draft.selectedData as go.ObjectData; // only reached if selectedData isn't null
-        data[path] = value;
-        if (isBlur) {
-          const key = data.key;
-          if (key < 0) {
-            // negative keys are links
-            const idx = this.mapLinkKeyIdx.get(key);
-            if (idx !== undefined && idx >= 0) {
-              draft.linkDataArray[idx] = data;
-              draft.skipsDiagramUpdate = false;
-            }
-          } else {
-            const idx = this.mapNodeKeyIdx.get(key);
-            if (idx !== undefined && idx >= 0) {
-              draft.nodeDataArray[idx] = data;
-              draft.skipsDiagramUpdate = false;
-            }
-          }
+    const data = this.props.selectedData as go.ObjectData; // only reached if selectedData isn't null
+    if (isBlur) {
+      const key = data.key;
+      if (key < 0) {
+        const idx = this.mapLinkKeyIdx.get(key);
+        if (idx !== undefined && idx >= 0) {
+          batch(() => {
+            this.props.modifyLink(idx, data);
+            this.props.setSkips(false);
+          });
         }
-      })
-    );
+      } else {
+        const idx = this.mapNodeKeyIdx.get(key);
+        if (idx !== undefined && idx >= 0) {
+          batch(() => {
+            this.props.modifyNode(idx, data);
+            this.props.setSkips(false);
+          });
+        }
+      }
+    } else {
+      this.props.editInspected(path, value);
+    }
   }
 
   /**
@@ -463,19 +279,29 @@ class App extends React.Component<{ id: string }, AppState> {
   public handleRelinkChange(e: any) {
     const target = e.target;
     const value = target.checked;
-    this.setState({
-      modelData: { canRelink: value },
-      skipsDiagramUpdate: false,
+    batch(() => {
+      this.props.modifyModel({ canRelink: value });
+      this.props.setSkips(false);
     });
   }
-
+  public handleAddNode() {
+    batch(() => {
+      //todo:adaptar a la nueva estructura
+      this.props.insertNode({
+        key: KeyService.generate(),
+        text: 'new node',
+        color: 'lime',
+      });
+      this.props.setSkips(false);
+    });
+  }
   public render() {
-    const selectedData = this.state.selectedData;
+    const selectedData = this.props.selectedData;
     let inspector;
     if (selectedData !== null) {
       inspector = (
         <SelectionInspector
-          selectedData={this.state.selectedData}
+          selectedData={this.props.selectedData}
           onInputChange={this.handleInputChange}
         />
       );
@@ -488,11 +314,11 @@ class App extends React.Component<{ id: string }, AppState> {
       <div>
         {diagramName}
         <DiagramWrapper
-          nodeDataArray={this.state.nodeDataArray}
-          linkDataArray={this.state.linkDataArray}
-          modelData={this.state.modelData}
-          skipsDiagramUpdate={this.state.skipsDiagramUpdate}
-          onDiagramEvent={this.handleDiagramEvent}
+          nodeDataArray={this.props.nodeDataArray}
+          linkDataArray={this.props.linkDataArray}
+          modelData={this.props.modelData}
+          skipsDiagramUpdate={this.props.skipsDiagramUpdate}
+          onDiagramEvent={this.handleDiagramChange}
           onModelChange={this.handleModelChange}
         />
         <label></label>
