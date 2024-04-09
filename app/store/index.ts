@@ -1,11 +1,15 @@
-import { combineReducers, configureStore } from '@reduxjs/toolkit'
-import { AppState } from '../interfaces/states'
+import { combineReducers } from 'redux'
+import { diagramReducer } from './diagram/reducers'
+import { DiagramState } from './diagram/types';
+
+export interface AppState {
+    diagram: DiagramState;
+}
 
 
+const rootReducer = combineReducers({
+    diagram: diagramReducer
+});
 
-const rootReducer = combineReducers<AppState>({
-    diagram: diagramReducer,
-})
-export default configureStore({
-    reducer: {},
-})
+export default function configureStore() {
+}
