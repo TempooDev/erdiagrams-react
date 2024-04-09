@@ -1,3 +1,4 @@
+import Board from '../components/board/Board';
 import App from '../components/board/Board';
 interface HomeProps {
   params: {
@@ -5,5 +6,5 @@ interface HomeProps {
   };
 }
 export default function Home({ params }: HomeProps) {
-  return <App id={params.id}></App>;
+  return <Board></Board>;
 }

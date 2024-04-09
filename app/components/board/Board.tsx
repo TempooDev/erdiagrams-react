@@ -1,4 +1,3 @@
-'use client';
 import * as go from 'gojs';
 import { produce } from 'immer';
 import * as React from 'react';
@@ -69,7 +68,7 @@ const actionCreators = {
   changeInspected,
   editInspected,
 };
-class App extends React.Component<DiagramProps> {
+class Board extends React.Component<DiagramProps> {
   private mapNodeKeyIdx: Map<go.Key, number>;
   private mapLinkKeyIdx: Map<go.Key, number>;
   diagram: Diagram;
@@ -337,7 +336,7 @@ class App extends React.Component<DiagramProps> {
   }
 }
 
-export default App;
+export default Board;
 function getDiagram(id: any) {
   let diagram = diagrams.find((diagram) => diagram.id === id);
 
