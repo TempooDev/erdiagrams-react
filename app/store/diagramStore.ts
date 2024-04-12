@@ -11,6 +11,8 @@ export type DiagramActions = {
     removeLink: (index: number) => void;
     modifyModel: (data: ObjectData) => void;
     setSkips: (skips: boolean) => void;
+    setNodeDataArray: (data: Array<ObjectData>) => void;
+    setLinkDataArray: (data: Array<ObjectData>) => void;
 }
 
 export type DiagramStore = DiagramState & DiagramActions;
@@ -229,7 +231,8 @@ export const defaultInitialState: DiagramState = {
         { from: "Order Details", to: "Categories", text: "0..N", toText: "1" }
     ],
     modelData: {},
-    skipsDiagramUpdate: false
+    skipsDiagramUpdate: false,
+    selectData: {}
 };
 
 export const createDiagramStore = (initState: DiagramState = defaultInitialState) => {
@@ -254,6 +257,9 @@ export const createDiagramStore = (initState: DiagramState = defaultInitialState
             linkDataArray: state.linkDataArray.filter((_, i) => i !== index)
         })),
         modifyModel: (data: ObjectData) => set({ modelData: data }),
-        setSkips: (skips: boolean) => set({ skipsDiagramUpdate: skips })
+        setSkips: (skips: boolean) => set({ skipsDiagramUpdate: skips }),
+        setSelectData: (data: ObjectData) => set({ selectData: data }),
+        setNodeDataArray: (data: Array<ObjectData>) => set({ nodeDataArray: data }),
+        setLinkDataArray: (data: Array<ObjectData>) => set({ linkDataArray: data }),
     }));
 }

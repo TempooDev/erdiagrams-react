@@ -5,11 +5,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { UserProvider } from '@auth0/nextjs-auth0/client';
 import UserTabMenu from './components/UserTabMenu';
-import { Provider } from 'react-redux';
-const inter = Inter({ subsets: ['latin'] });
-import configureStore from './store';
+import { DiagramStoreProvider } from './providers/diagram-store-provider';
 
-const store = configureStore();
+const inter = Inter({ subsets: ['latin'] });
+
 export const metadata: Metadata = {
   title: 'ERDiagrams',
   description: 'Collaborative E-R Diagram tool',
@@ -44,7 +43,7 @@ export default function RootLayout({
               </ul>
             </div>
           </div>
-          <Provider store={store}>{children}</Provider>
+          <DiagramStoreProvider>{children}</DiagramStoreProvider>
         </body>
       </UserProvider>
     </html>

@@ -21,13 +21,13 @@ export const DiagramStoreProvider = ({
   }
 
   return (
-    <DiagramStoreProvider.Provider value={storeRef.current}>
+    <DiagramStoreContext.Provider value={storeRef.current}>
       {children}
-    </DiagramStoreProvider.Provider>
+    </DiagramStoreContext.Provider>
   );
 };
 
-export const useCounterStore = <T,>(
+export const useDiagramStore = <T,>(
   selector: (store: DiagramStore) => T
 ): T => {
   const diagramStoreContext = useContext(DiagramStoreContext);

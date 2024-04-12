@@ -1,3 +1,4 @@
+'use client';
 import * as go from 'gojs';
 import { produce } from 'immer';
 import * as React from 'react';
@@ -7,6 +8,12 @@ import { SelectionInspector } from '../inspector/SelectionInspector';
 
 import './Board.css';
 import diagrams, { Diagram } from '../../mocks/diagrams';
+
+import { changeInspected, editInspected } from '@/app/store/inspector/action';
+import { KeyService } from '@/app/utils/KeyServices';
+import { useDiagramStore } from '@/app/providers/diagram-store-provider';
+import { DiagramState } from '@/app/store/diagram/types';
+import { StateProps, DispatchProps } from '@/app/interfaces/states';
 import {
   insertLink,
   insertNode,
@@ -17,60 +24,34 @@ import {
   removeNodes,
   setSkips,
 } from '@/app/store/diagram/actions';
-import { changeInspected, editInspected } from '@/app/store/inspector/action';
-import { AppState } from '@/app/store';
-//todo:revisar batch si es necesario
-import { batch, connect } from 'react-redux';
-import { KeyService } from '@/app/utils/KeyServices';
 
-interface StateProps {
-  nodeDataArray: Array<go.ObjectData>;
-  linkDataArray: Array<go.ObjectData>;
-  modelData: go.ObjectData;
-  skipsDiagramUpdate: boolean;
-  selectedData: go.ObjectData | null;
-}
+type DiagramProps = StateProps;
 
-interface DispatchProps {
-  insertLink: typeof insertLink;
-  insertNode: typeof insertNode;
-  modifyLink: typeof modifyLink;
-  modifyModel: typeof modifyModel;
-  modifyNode: typeof modifyNode;
-  removeLinks: typeof removeLinks;
-  removeNodes: typeof removeNodes;
-  setSkips: typeof setSkips;
-  changeInspected: typeof changeInspected;
-  editInspected: typeof editInspected;
-}
-
-type DiagramProps = StateProps & DispatchProps;
-
-const mapStateToProps = (state: AppState): StateProps => {
+const mapStateToProps = (state: DiagramState): StateProps => {
   return {
-    nodeDataArray: state.diagram.nodeDataArray,
-    linkDataArray: state.diagram.linkDataArray,
-    modelData: state.diagram.modelData,
-    skipsDiagramUpdate: state.diagram.skipsDiagramUpdate,
-    selectedData: state.inspector.selectedData,
+    nodeDataArray: state.nodeDataArray,
+    linkDataArray: state.linkDataArray,
+    modelData: state.modelData,
+    skipsDiagramUpdate: state.skipsDiagramUpdate,
+    selectedData: state.selectData,
   };
 };
 
-const actionCreators = {
-  insertLink,
-  insertNode,
-  modifyLink,
-  modifyModel,
-  modifyNode,
-  removeLinks,
-  removeNodes,
-  setSkips,
-  changeInspected,
-  editInspected,
-};
 class Board extends React.Component<DiagramProps> {
   private mapNodeKeyIdx: Map<go.Key, number>;
   private mapLinkKeyIdx: Map<go.Key, number>;
+  actionCreators = {
+    insertLink,
+    insertNode,
+    modifyLink,
+    modifyModel,
+    modifyNode,
+    removeLinks,
+    removeNodes,
+    setSkips,
+    changeInspected,
+    editInspected,
+  };
   constructor(props: any) {
     super(props);
 
@@ -122,17 +103,17 @@ class Board extends React.Component<DiagramProps> {
             const idx = this.mapNodeKeyIdx.get(sel.key);
             if (idx !== undefined && idx >= 0) {
               const nd = this.props.nodeDataArray[idx];
-              this.props.changeInspected(nd);
+              this.actionCreators.changeInspected(nd);
             }
           } else if (sel instanceof go.Link) {
             const idx = this.mapLinkKeyIdx.get(sel.key);
             if (idx !== undefined && idx >= 0) {
               const ld = this.props.linkDataArray[idx];
-              this.props.changeInspected(ld);
+              this.actionCreators.changeInspected(ld);
             }
           }
         } else {
-          this.props.changeInspected(null);
+          this.actionCreators.changeInspected(null);
         }
         const modal = document.getElementById(
           'my_modal_2'
@@ -163,77 +144,76 @@ class Board extends React.Component<DiagramProps> {
     // maintain maps of modified data so insertions don't need slow lookups
     const modifiedNodeMap = new Map<go.Key, go.ObjectData>();
     const modifiedLinkMap = new Map<go.Key, go.ObjectData>();
-    batch(() => {
-      const narr = this.props.nodeDataArray;
-      if (modifiedNodeData) {
-        modifiedNodeData.forEach((nd: go.ObjectData) => {
-          modifiedNodeMap.set(nd.key, nd);
-          const idx = this.mapNodeKeyIdx.get(nd.key);
-          if (idx !== undefined && idx >= 0) {
-            this.props.modifyNode(idx, nd);
-            if (
-              this.props.selectedData &&
-              this.props.selectedData.key === nd.key
-            ) {
-              this.props.changeInspected(nd);
-            }
+
+    const narr = this.props.nodeDataArray;
+    if (modifiedNodeData) {
+      modifiedNodeData.forEach((nd: go.ObjectData) => {
+        modifiedNodeMap.set(nd.key, nd);
+        const idx = this.mapNodeKeyIdx.get(nd.key);
+        if (idx !== undefined && idx >= 0) {
+          this.actionCreators.modifyNode(idx, nd);
+          if (
+            this.props.selectedData &&
+            this.props.selectedData.key === nd.key
+          ) {
+            this.actionCreators.changeInspected(nd);
           }
-        });
-      }
-      if (insertedNodeKeys) {
-        insertedNodeKeys.forEach((key: go.Key) => {
-          const nd = modifiedNodeMap.get(key);
-          const idx = this.mapNodeKeyIdx.get(key);
-          if (nd && idx === undefined) {
-            this.mapNodeKeyIdx.set(nd.key, narr.length);
-            this.props.insertNode(nd);
+        }
+      });
+    }
+    if (insertedNodeKeys) {
+      insertedNodeKeys.forEach((key: go.Key) => {
+        const nd = modifiedNodeMap.get(key);
+        const idx = this.mapNodeKeyIdx.get(key);
+        if (nd && idx === undefined) {
+          this.mapNodeKeyIdx.set(nd.key, narr.length);
+          this.actionCreators.insertNode(nd);
+        }
+      });
+    }
+    if (removedNodeKeys) {
+      this.actionCreators.removeNodes(
+        removedNodeKeys,
+        this.refreshNodeIndex.bind(this)
+      );
+    }
+    const larr = this.props.linkDataArray;
+    if (modifiedLinkData) {
+      modifiedLinkData.forEach((ld: go.ObjectData) => {
+        modifiedLinkMap.set(ld.key, ld);
+        const idx = this.mapLinkKeyIdx.get(ld.key);
+        if (idx !== undefined && idx >= 0) {
+          this.actionCreators.modifyLink(idx, ld);
+          if (
+            this.props.selectedData &&
+            this.props.selectedData.key === ld.key
+          ) {
+            this.actionCreators.changeInspected(ld);
           }
-        });
-      }
-      if (removedNodeKeys) {
-        this.props.removeNodes(
-          removedNodeKeys,
-          this.refreshNodeIndex.bind(this)
-        );
-      }
-      const larr = this.props.linkDataArray;
-      if (modifiedLinkData) {
-        modifiedLinkData.forEach((ld: go.ObjectData) => {
-          modifiedLinkMap.set(ld.key, ld);
-          const idx = this.mapLinkKeyIdx.get(ld.key);
-          if (idx !== undefined && idx >= 0) {
-            this.props.modifyLink(idx, ld);
-            if (
-              this.props.selectedData &&
-              this.props.selectedData.key === ld.key
-            ) {
-              this.props.changeInspected(ld);
-            }
-          }
-        });
-      }
-      if (insertedLinkKeys) {
-        insertedLinkKeys.forEach((key: go.Key) => {
-          const ld = modifiedLinkMap.get(key);
-          const idx = this.mapLinkKeyIdx.get(key);
-          if (ld && idx === undefined) {
-            this.mapLinkKeyIdx.set(ld.key, larr.length);
-            this.props.insertLink(ld);
-          }
-        });
-      }
-      if (removedLinkKeys) {
-        this.props.removeLinks(
-          removedLinkKeys,
-          this.refreshLinkIndex.bind(this)
-        );
-      }
-      // handle model data changes, for now just replacing with the supplied object
-      if (modifiedModelData) {
-        this.props.modifyModel(modifiedModelData);
-      }
-      this.props.setSkips(true); // the GoJS model already knows about these updates
-    });
+        }
+      });
+    }
+    if (insertedLinkKeys) {
+      insertedLinkKeys.forEach((key: go.Key) => {
+        const ld = modifiedLinkMap.get(key);
+        const idx = this.mapLinkKeyIdx.get(key);
+        if (ld && idx === undefined) {
+          this.mapLinkKeyIdx.set(ld.key, larr.length);
+          this.actionCreators.insertLink(ld);
+        }
+      });
+    }
+    if (removedLinkKeys) {
+      this.actionCreators.removeLinks(
+        removedLinkKeys,
+        this.refreshLinkIndex.bind(this)
+      );
+    }
+    // handle model data changes, for now just replacing with the supplied object
+    if (modifiedModelData) {
+      this.actionCreators.modifyModel(modifiedModelData);
+    }
+    this.actionCreators.setSkips(true); // the GoJS model already knows about these updates
   }
 
   /**
@@ -249,22 +229,18 @@ class Board extends React.Component<DiagramProps> {
       if (key < 0) {
         const idx = this.mapLinkKeyIdx.get(key);
         if (idx !== undefined && idx >= 0) {
-          batch(() => {
-            this.props.modifyLink(idx, data);
-            this.props.setSkips(false);
-          });
+          this.actionCreators.modifyLink(idx, data);
+          this.actionCreators.setSkips(false);
         }
       } else {
         const idx = this.mapNodeKeyIdx.get(key);
         if (idx !== undefined && idx >= 0) {
-          batch(() => {
-            this.props.modifyNode(idx, data);
-            this.props.setSkips(false);
-          });
+          this.actionCreators.modifyNode(idx, data);
+          this.actionCreators.setSkips(false);
         }
       }
     } else {
-      this.props.editInspected(path, value);
+      this.actionCreators.editInspected(path, value);
     }
   }
 
@@ -275,21 +251,18 @@ class Board extends React.Component<DiagramProps> {
   public handleRelinkChange(e: any) {
     const target = e.target;
     const value = target.checked;
-    batch(() => {
-      this.props.modifyModel({ canRelink: value });
-      this.props.setSkips(false);
-    });
+
+    this.actionCreators.modifyModel({ canRelink: value });
+    this.actionCreators.setSkips(false);
   }
   public handleAddNode() {
-    batch(() => {
-      //todo:adaptar a la nueva estructura
-      this.props.insertNode({
-        key: KeyService.generate(),
-        text: 'new node',
-        color: 'lime',
-      });
-      this.props.setSkips(false);
+    //todo:adaptar a la nueva estructura
+    this.actionCreators.insertNode({
+      key: KeyService.generate(),
+      text: 'new node',
+      color: 'lime',
     });
+    this.actionCreators.setSkips(false);
   }
   public render() {
     const selectedData = this.props.selectedData;
@@ -343,4 +316,4 @@ function __mapLocation(diagram: any) {
   }
   return diagram;
 }
-export default connect(mapStateToProps, actionCreators)(Board);
+export default Board;

@@ -5,6 +5,7 @@ export interface DiagramState {
     linkDataArray: Array<ObjectData>;
     modelData: ObjectData;
     skipsDiagramUpdate: boolean;
+    selectData: ObjectData;
 }
 
 // Node action types
