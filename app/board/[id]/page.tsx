@@ -9,7 +9,7 @@ interface HomeProps {
     id: string;
   };
 }
-
+//todo fix infinity loop on load
 export default function Home({ params }: HomeProps) {
   const {
     nodeDataArray,
