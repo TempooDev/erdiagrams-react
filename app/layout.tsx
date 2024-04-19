@@ -30,6 +30,11 @@ export default function RootLayout({
               </Link>
             </div>
             <div className="flex-none">
+              <Link className="btn btn-ghost text-xl" href={'/chat'}>
+                Chat
+              </Link>
+            </div>
+            <div className="flex-none">
               <ul className="menu menu-horizontal px-1">
                 <li>
                   <Link href={'/board'}>New Board</Link>
