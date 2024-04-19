@@ -7,59 +7,29 @@ import { DiagramWrapper } from '../diagram/DiagramWrapper';
 import { SelectionInspector } from '../inspector/SelectionInspector';
 
 import './Board.css';
-import diagrams, { Diagram } from '../../mocks/diagrams';
 
-import { changeInspected, editInspected } from '@/app/store/inspector/action';
 import { KeyService } from '@/app/utils/KeyServices';
-import { useDiagramStore } from '@/app/providers/diagram-store-provider';
-import { DiagramState } from '@/app/store/diagram/types';
-import { StateProps, DispatchProps } from '@/app/interfaces/states';
-import {
-  insertLink,
-  insertNode,
-  modifyLink,
-  modifyModel,
-  modifyNode,
-  removeLinks,
-  removeNodes,
-  setSkips,
-} from '@/app/store/diagram/actions';
+import { DiagramStore } from '@/app/store';
+import diagrams from '@/app/mocks/diagrams';
 
-type DiagramProps = StateProps;
-
-const mapStateToProps = (state: DiagramState): StateProps => {
-  return {
-    nodeDataArray: state.nodeDataArray,
-    linkDataArray: state.linkDataArray,
-    modelData: state.modelData,
-    skipsDiagramUpdate: state.skipsDiagramUpdate,
-    selectedData: state.selectData,
-  };
-};
+type DiagramProps = { store: DiagramStore; id?: string };
 
 class Board extends React.Component<DiagramProps> {
   private mapNodeKeyIdx: Map<go.Key, number>;
   private mapLinkKeyIdx: Map<go.Key, number>;
-  actionCreators = {
-    insertLink,
-    insertNode,
-    modifyLink,
-    modifyModel,
-    modifyNode,
-    removeLinks,
-    removeNodes,
-    setSkips,
-    changeInspected,
-    editInspected,
-  };
+
   constructor(props: any) {
     super(props);
-
+    if (this.props.id) {
+      const diagram = diagrams.find((d) => d.id === this.props.id);
+      this.props.store.setNodeDataArray(diagram!.nodeDataArray);
+      this.props.store.setLinkDataArray(diagram!.linkDataArray);
+    }
     // init maps
     this.mapNodeKeyIdx = new Map<go.Key, number>();
     this.mapLinkKeyIdx = new Map<go.Key, number>();
-    this.refreshNodeIndex(this.props.nodeDataArray);
-    this.refreshLinkIndex(this.props.linkDataArray);
+    this.refreshNodeIndex(this.props.store.nodeDataArray);
+    this.refreshLinkIndex(this.props.store.linkDataArray);
     // bind handler methods
     this.handleDiagramChange = this.handleDiagramChange.bind(this);
     this.handleModelChange = this.handleModelChange.bind(this);
@@ -102,18 +72,18 @@ class Board extends React.Component<DiagramProps> {
           if (sel instanceof go.Node) {
             const idx = this.mapNodeKeyIdx.get(sel.key);
             if (idx !== undefined && idx >= 0) {
-              const nd = this.props.nodeDataArray[idx];
-              this.actionCreators.changeInspected(nd);
+              const nd = this.props.store.nodeDataArray[idx];
+              this.props.store.setSelectedData(nd);
             }
           } else if (sel instanceof go.Link) {
             const idx = this.mapLinkKeyIdx.get(sel.key);
             if (idx !== undefined && idx >= 0) {
-              const ld = this.props.linkDataArray[idx];
-              this.actionCreators.changeInspected(ld);
+              const ld = this.props.store.linkDataArray[idx];
+              this.props.store.setSelectedData(ld);
             }
           }
         } else {
-          this.actionCreators.changeInspected(null);
+          this.props.store.removeSelectedData();
         }
         const modal = document.getElementById(
           'my_modal_2'
@@ -145,18 +115,18 @@ class Board extends React.Component<DiagramProps> {
     const modifiedNodeMap = new Map<go.Key, go.ObjectData>();
     const modifiedLinkMap = new Map<go.Key, go.ObjectData>();
 
-    const narr = this.props.nodeDataArray;
+    const narr = this.props.store.nodeDataArray;
     if (modifiedNodeData) {
       modifiedNodeData.forEach((nd: go.ObjectData) => {
         modifiedNodeMap.set(nd.key, nd);
         const idx = this.mapNodeKeyIdx.get(nd.key);
         if (idx !== undefined && idx >= 0) {
-          this.actionCreators.modifyNode(idx, nd);
+          this.props.store.modifyNode(idx, nd);
           if (
-            this.props.selectedData &&
-            this.props.selectedData.key === nd.key
+            this.props.store.selectedData &&
+            this.props.store.selectedData.key === nd.key
           ) {
-            this.actionCreators.changeInspected(nd);
+            // this.actionCreators.changeInspected(nd);
           }
         }
       });
@@ -167,28 +137,28 @@ class Board extends React.Component<DiagramProps> {
         const idx = this.mapNodeKeyIdx.get(key);
         if (nd && idx === undefined) {
           this.mapNodeKeyIdx.set(nd.key, narr.length);
-          this.actionCreators.insertNode(nd);
+          this.props.store.insertNode(nd);
         }
       });
     }
     if (removedNodeKeys) {
-      this.actionCreators.removeNodes(
-        removedNodeKeys,
-        this.refreshNodeIndex.bind(this)
-      );
+      // this.actionCreators.removeNodes(
+      //   removedNodeKeys,
+      //   this.refreshNodeIndex.bind(this)
+      // );
     }
-    const larr = this.props.linkDataArray;
+    const larr = this.props.store.linkDataArray;
     if (modifiedLinkData) {
       modifiedLinkData.forEach((ld: go.ObjectData) => {
         modifiedLinkMap.set(ld.key, ld);
         const idx = this.mapLinkKeyIdx.get(ld.key);
         if (idx !== undefined && idx >= 0) {
-          this.actionCreators.modifyLink(idx, ld);
+          this.props.store.modifyLink(idx, ld);
           if (
-            this.props.selectedData &&
-            this.props.selectedData.key === ld.key
+            this.props.store.selectedData &&
+            this.props.store.selectedData.key === ld.key
           ) {
-            this.actionCreators.changeInspected(ld);
+            this.props.store.setSelectedData(ld);
           }
         }
       });
@@ -199,21 +169,21 @@ class Board extends React.Component<DiagramProps> {
         const idx = this.mapLinkKeyIdx.get(key);
         if (ld && idx === undefined) {
           this.mapLinkKeyIdx.set(ld.key, larr.length);
-          this.actionCreators.insertLink(ld);
+          this.props.store.insertLink(ld);
         }
       });
     }
     if (removedLinkKeys) {
-      this.actionCreators.removeLinks(
-        removedLinkKeys,
-        this.refreshLinkIndex.bind(this)
-      );
+      // this.actionCreators.removeLinks(
+      //   removedLinkKeys,
+      //   this.refreshLinkIndex.bind(this)
+      // );
     }
     // handle model data changes, for now just replacing with the supplied object
     if (modifiedModelData) {
-      this.actionCreators.modifyModel(modifiedModelData);
+      this.props.store.modifyModel(modifiedModelData);
     }
-    this.actionCreators.setSkips(true); // the GoJS model already knows about these updates
+    this.props.store.setSkips(true); // the GoJS model already knows about these updates
   }
 
   /**
@@ -223,24 +193,24 @@ class Board extends React.Component<DiagramProps> {
    * @param isBlur whether the input event was a blur, indicating the edit is complete
    */
   public handleInputChange(path: string, value: string, isBlur: boolean) {
-    const data = this.props.selectedData as go.ObjectData; // only reached if selectedData isn't null
+    const data = this.props.store.selectedData as go.ObjectData; // only reached if selectedData isn't null
     if (isBlur) {
       const key = data.key;
       if (key < 0) {
         const idx = this.mapLinkKeyIdx.get(key);
         if (idx !== undefined && idx >= 0) {
-          this.actionCreators.modifyLink(idx, data);
-          this.actionCreators.setSkips(false);
+          this.props.store.modifyLink(idx, data);
+          this.props.store.setSkips(false);
         }
       } else {
         const idx = this.mapNodeKeyIdx.get(key);
         if (idx !== undefined && idx >= 0) {
-          this.actionCreators.modifyNode(idx, data);
-          this.actionCreators.setSkips(false);
+          this.props.store.modifyNode(idx, data);
+          this.props.store.setSkips(false);
         }
       }
     } else {
-      this.actionCreators.editInspected(path, value);
+      // this.actionCreators.editInspected(path, value);
     }
   }
 
@@ -252,25 +222,25 @@ class Board extends React.Component<DiagramProps> {
     const target = e.target;
     const value = target.checked;
 
-    this.actionCreators.modifyModel({ canRelink: value });
-    this.actionCreators.setSkips(false);
+    this.props.store.modifyModel({ canRelink: value });
+    this.props.store.setSkips(false);
   }
   public handleAddNode() {
     //todo:adaptar a la nueva estructura
-    this.actionCreators.insertNode({
+    this.props.store.insertNode({
       key: KeyService.generate(),
       text: 'new node',
       color: 'lime',
     });
-    this.actionCreators.setSkips(false);
+    this.props.store.setSkips(false);
   }
   public render() {
-    const selectedData = this.props.selectedData;
+    const selectedData = this.props.store.selectedData;
     let inspector;
     if (selectedData !== null) {
       inspector = (
         <SelectionInspector
-          selectedData={this.props.selectedData}
+          selectedData={selectedData}
           onInputChange={this.handleInputChange}
         />
       );
@@ -279,10 +249,10 @@ class Board extends React.Component<DiagramProps> {
     return (
       <div>
         <DiagramWrapper
-          nodeDataArray={this.props.nodeDataArray}
-          linkDataArray={this.props.linkDataArray}
-          modelData={this.props.modelData}
-          skipsDiagramUpdate={this.props.skipsDiagramUpdate}
+          nodeDataArray={this.props.store.nodeDataArray}
+          linkDataArray={this.props.store.linkDataArray}
+          modelData={this.props.store.modelData}
+          skipsDiagramUpdate={this.props.store.skipsDiagramUpdate}
           onDiagramEvent={this.handleDiagramChange}
           onModelChange={this.handleModelChange}
         />

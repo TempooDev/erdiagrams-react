@@ -6,4 +6,5 @@ export interface DiagramState {
     modelData: ObjectData;
     skipsDiagramUpdate: boolean;
     selectedData: ObjectData;
+
 }
