@@ -1,6 +1,6 @@
 import { createStore } from 'zustand'
 import { ObjectData } from 'gojs';
-import { DiagramState } from './diagram/types';
+import { DiagramState } from './types';
 
 export type DiagramActions = {
     modifyNode: (index: number, data: ObjectData) => void;
@@ -13,6 +13,9 @@ export type DiagramActions = {
     setSkips: (skips: boolean) => void;
     setNodeDataArray: (data: Array<ObjectData>) => void;
     setLinkDataArray: (data: Array<ObjectData>) => void;
+    setModelData: (data: ObjectData) => void;
+    setSelectedData: (data: ObjectData) => void;
+    removeSelectedData: () => void;
 }
 
 export type DiagramStore = DiagramState & DiagramActions;
@@ -232,7 +235,7 @@ export const defaultInitialState: DiagramState = {
     ],
     modelData: {},
     skipsDiagramUpdate: false,
-    selectData: {}
+    selectedData: {}
 };
 
 export const createDiagramStore = (initState: DiagramState = defaultInitialState) => {
@@ -258,8 +261,10 @@ export const createDiagramStore = (initState: DiagramState = defaultInitialState
         })),
         modifyModel: (data: ObjectData) => set({ modelData: data }),
         setSkips: (skips: boolean) => set({ skipsDiagramUpdate: skips }),
-        setSelectData: (data: ObjectData) => set({ selectData: data }),
+        setSelectedData: (data: ObjectData) => set({ selectedData: data }),
         setNodeDataArray: (data: Array<ObjectData>) => set({ nodeDataArray: data }),
         setLinkDataArray: (data: Array<ObjectData>) => set({ linkDataArray: data }),
+        setModelData: (data: ObjectData) => set({ modelData: data }),
+        removeSelectedData: () => set({ selectedData: {} })
     }));
 }

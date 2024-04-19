@@ -1,1 +1,1 @@
-export * from './diagramStore';
+export * from './diagram/diagramStore';
