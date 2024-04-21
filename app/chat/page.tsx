@@ -25,10 +25,10 @@ export default function Chat({ params }: PageProp) {
   const [connection, setConnection] = useState<signalR.HubConnection | null>(
     null
   );
-  const apiURL = process.env.API_URL;
+  const apiURL = process.env.NEXT_PUBLIC_CHAT_URL!;
   useEffect(() => {
     const connect = new signalR.HubConnectionBuilder()
-      .withUrl(apiURL + '/hub/chat')
+      .withUrl(apiURL)
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Information)
       .build();
@@ -51,7 +51,7 @@ export default function Chat({ params }: PageProp) {
         connection.off('ReceiveMessage');
       }
     };
-  }, []);
+  }, [apiURL]);
   const sendMessage = async () => {
     if (connection && newMessage.trim()) {
       await connection.send('PostMessage', newMessage);
