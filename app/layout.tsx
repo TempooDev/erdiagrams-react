@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { UserProvider } from '@auth0/nextjs-auth0/client';
 import UserTabMenu from './components/UserTabMenu';
+import { DiagramStoreProvider } from './providers/diagram-store-provider';
+
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
@@ -28,22 +30,14 @@ export default function RootLayout({
               </Link>
             </div>
             <div className="flex-none">
+              <Link className="btn btn-ghost text-xl" href={'/chat'}>
+                Chat
+              </Link>
+            </div>
+            <div className="flex-none">
               <ul className="menu menu-horizontal px-1">
                 <li>
-                  <Link href={'/board'}>Board</Link>
-                </li>
-                <li>
-                  <details>
-                    <summary>Parent</summary>
-                    <ul className="p-2 bg-base-100 rounded-t-none">
-                      <li>
-                        <a>Link 1</a>
-                      </li>
-                      <li>
-                        <a>Link 2</a>
-                      </li>
-                    </ul>
-                  </details>
+                  <Link href={'/board'}>New Board</Link>
                 </li>
               </ul>
               <UserTabMenu />
@@ -54,8 +48,7 @@ export default function RootLayout({
               </ul>
             </div>
           </div>
-
-          {children}
+          <DiagramStoreProvider>{children}</DiagramStoreProvider>
         </body>
       </UserProvider>
     </html>

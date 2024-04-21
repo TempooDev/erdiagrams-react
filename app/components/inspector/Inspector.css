@@ -1,0 +1,9 @@
+.inspector {
+  cursor: default;
+  margin-top: 2px;
+}
+
+.inspector td,
+th {
+  padding: 2px;
+}
