@@ -69,7 +69,7 @@ export default function Chat({ params }: PageProp) {
           <div
             key={index}
             className={`p-2 my-2 rounded ${
-              isMyMessage(msg.sender) ? 'bg-blue-200' : 'bg-gray-200'
+              isMyMessage(msg.sender) ? 'bg-blue-900' : 'bg-gray-200'
             }`}
           >
             <p>{msg.content}</p>
