@@ -21,6 +21,7 @@ type Message = {
 export default function Chat({ params }: PageProp) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [user, setUser] = useState('');
   const [connection, setConnection] = useState<signalR.HubConnection | null>(
     null
   );
@@ -81,6 +82,15 @@ export default function Chat({ params }: PageProp) {
           className="border p-2 mr-2 rounded w-[300px]"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
+          placeholder="Enter your message"
+        />
+
+        <input
+          type="text"
+          className="border p-2 mr-2 rounded w-[300px]"
+          value={user}
+          onChange={(e) => setUser(e.target.value)}
+          placeholder="Enter your username"
         />
         <button
           onClick={sendMessage}
