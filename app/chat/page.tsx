@@ -25,9 +25,10 @@ export default function Chat({ params }: PageProp) {
   const [connection, setConnection] = useState<signalR.HubConnection | null>(
     null
   );
+  const apiURL = process.env.API_URL;
   useEffect(() => {
     const connect = new signalR.HubConnectionBuilder()
-      .withUrl('http://localhost:5010/hub/chat')
+      .withUrl(apiURL + '/hub/chat')
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Information)
       .build();
