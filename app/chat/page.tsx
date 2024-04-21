@@ -13,63 +13,65 @@ interface PageProp {
 }
 
 type Message = {
-  user: string;
+  sender: string;
   content: string;
+  sentTime: Date;
 };
 
 export default function Chat({ params }: PageProp) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [user, setUser] = useState('yo');
-  const [message, setMessage] = useState('');
-  const hubConnection = useRef<signalR.HubConnection | null>(null);
-
+  const [newMessage, setNewMessage] = useState('');
+  const [connection, setConnection] = useState<signalR.HubConnection | null>(
+    null
+  );
   useEffect(() => {
-    const createHubConnection = async () => {
-      const hubConnect = new signalR.HubConnectionBuilder()
-        .withUrl('https://localhost:5010/hub/chat')
-        .withAutomaticReconnect()
-        .configureLogging(signalR.LogLevel.Information)
-        .build();
-
-      try {
-        await hubConnect.start();
-        console.log('Connection successful!');
-        hubConnect.on('ReceiveMessage', (user: string, message: string) => {
-          setMessages((messages) => [...messages, { user, content: message }]);
+    const connect = new signalR.HubConnectionBuilder()
+      .withUrl('http://localhost:5010/hub/chat')
+      .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.Information)
+      .build();
+    setConnection(connect);
+    connect
+      .start()
+      .then(() => {
+        connect.on('ReceiveMessage', (sender, content, sentTime) => {
+          setMessages((prev) => [...prev, { sender, content, sentTime }]);
         });
-        await hubConnect.invoke('RetrieveMessageHistory');
-      } catch (err) {
-        alert('Error establishing connection! Attempting to reconnect...');
-      }
+        connect.invoke('RetrieveMessageHistory');
+      })
 
-      hubConnection.current = hubConnect;
-    };
-
-    createHubConnection();
+      .catch((err) =>
+        console.error('Error while connecting to SignalR Hub:', err)
+      );
 
     return () => {
-      hubConnection.current?.off('ReceiveMessage');
+      if (connection) {
+        connection.off('ReceiveMessage');
+      }
     };
   }, []);
-  const handleSendMessage = async () => {
-    if (
-      hubConnection.current &&
-      hubConnection.current.state === signalR.HubConnectionState.Connected &&
-      message.trim()
-    ) {
-      await hubConnection.current.send('SendMessage', user, message);
-      setMessage(''); //reset message
-    } else {
-      console.log('Connection not established');
+  const sendMessage = async () => {
+    if (connection && newMessage.trim()) {
+      await connection.send('PostMessage', newMessage);
+      setNewMessage('');
     }
+  };
+  const isMyMessage = (username: string) => {
+    return connection && username === connection.connectionId;
   };
 
   return (
     <div className="p-4">
       <div className="mb-4">
         {messages.map((msg, index) => (
-          <div key={index} className={`p-2 my-2 rounded`}>
+          <div
+            key={index}
+            className={`p-2 my-2 rounded ${
+              isMyMessage(msg.sender) ? 'bg-blue-200' : 'bg-gray-200'
+            }`}
+          >
             <p>{msg.content}</p>
+            <p className="text-xs">{new Date(msg.sentTime).toLocaleString()}</p>
           </div>
         ))}
       </div>
@@ -77,12 +79,11 @@ export default function Chat({ params }: PageProp) {
         <input
           type="text"
           className="border p-2 mr-2 rounded w-[300px]"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
         />
-
         <button
-          onClick={handleSendMessage}
+          onClick={sendMessage}
           className="bg-blue-500 text-white p-2 rounded"
         >
           Send
