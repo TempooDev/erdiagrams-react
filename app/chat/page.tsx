@@ -5,7 +5,7 @@ import * as signalR from '@microsoft/signalr';
 interface PageState {
   user: string;
   message: string;
-  messages: any[];
+  messages: Message[];
   hubConnection: any;
 }
 interface PageProp {
@@ -13,9 +13,9 @@ interface PageProp {
 }
 
 type Message = {
-  sender: string;
+  senderId: string;
+  senderUser: string;
   content: string;
-  sentTime: Date;
 };
 
 export default function Chat({ params }: PageProp) {
@@ -30,13 +30,12 @@ export default function Chat({ params }: PageProp) {
   useEffect(() => {
     const connect = new signalR.HubConnectionBuilder().withUrl(apiURL).build();
 
-    if (connect.state) setLoading(false);
     setConnection(connect);
     connect
       .start()
       .then(() => {
-        connect.on('ReceiveMessage', (sender, content, sentTime) => {
-          setMessages((prev) => [...prev, { sender, content, sentTime }]);
+        connect.on('ReceiveMessage', (message) => {
+          setMessages((prev) => [...prev, message]);
         });
         connect.invoke('RetrieveMessageHistory');
         setLoading(false);
@@ -55,7 +54,13 @@ export default function Chat({ params }: PageProp) {
 
   const sendMessage = async () => {
     if (connection && newMessage.trim()) {
-      await connection.send('PostMessage', newMessage);
+      const mess: Message = {
+        senderId: connection.connectionId!,
+        senderUser: user,
+        content: newMessage,
+      };
+      setMessages((prev) => [...prev, mess]);
+      await connection.send('PostMessage', mess);
       setNewMessage('');
     }
   };
@@ -73,14 +78,11 @@ export default function Chat({ params }: PageProp) {
             <div
               key={index}
               className={`p-2 my-2 rounded text-black ${
-                isMyMessage(msg.sender) ? 'bg-blue-900' : 'bg-gray-100'
+                isMyMessage(msg.senderId) ? 'bg-blue-900' : 'bg-gray-100'
               }`}
             >
               <p>{msg.content}</p>
-              <p>{msg.sender}</p>
-              <p className="text-xs">
-                {new Date(msg.sentTime).toLocaleString()}
-              </p>
+              <p>{msg.senderUser}</p>
             </div>
           ))}
         </div>
