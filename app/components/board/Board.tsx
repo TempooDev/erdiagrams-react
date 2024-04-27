@@ -258,8 +258,6 @@ class Board extends React.Component<DiagramProps> {
           <div className="modal-box">
             <form method="dialog" className="modal-backdrop text-slate-50">
               {inspector}
-
-              <button>save</button>
             </form>
           </div>
         </dialog>
