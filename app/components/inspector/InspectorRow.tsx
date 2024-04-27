@@ -7,7 +7,7 @@ import './Inspector.css';
 
 interface InspectorRowProps {
   id: string;
-  value: string;
+  value: any;
   onInputChange: (key: string, value: string, isBlur: boolean) => void;
 }
 
@@ -40,26 +40,89 @@ export class InspectorRow extends React.PureComponent<InspectorRowProps, {}> {
     return str;
   }
   public render() {
+    const propertyTypes = ['VARCHAR', 'INTEGER', 'BOOLEAN', 'DATE', 'FLOAT'];
     let val = this.props.value;
     if (this.props.id === 'loc') {
       val = this.formatLocation(this.props.value);
     }
     if (this.props.id === 'items') {
-      val = this.formatItems(this.props.value);
-    }
-    if (this.props.id === 'inheriteditems') {
-      val = this.formatItems(this.props.value);
+      return (
+        <tr>
+          <td>
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Is Key</th>
+                  <th>Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                {this.props.value.map((item: any, index: number) => (
+                  <tr key={index}>
+                    <td>
+                      <input
+                        value={item.name}
+                        onChange={(e) =>
+                          this.props.onInputChange(
+                            `${this.props.id}.${index}.name`,
+                            e.target.value,
+                            false
+                          )
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={item.isKey as boolean}
+                        onChange={(e) =>
+                          this.props.onInputChange(
+                            `${this.props.id}.${index}.isKey`,
+                            e.target.checked.toString(),
+                            false
+                          )
+                        }
+                      />
+                    </td>
+                    <td>
+                      <select
+                        value={item.type}
+                        onChange={(e) =>
+                          this.props.onInputChange(
+                            `${this.props.id}.${index}.type`,
+                            e.target.value,
+                            false
+                          )
+                        }
+                      >
+                        {propertyTypes.map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      );
     }
 
     return (
       <tr>
-        <td>{this.props.id}</td>
         <td>
-          <input
-            disabled={this.props.id === 'key'}
-            value={val}
-            onChange={this.handleInputChange}
-          ></input>
+          <table>
+            <thead>{this.props.id}</thead>
+            <tbody>
+              <td>
+                <input value={val} onChange={this.handleInputChange}></input>
+              </td>
+            </tbody>
+          </table>
         </td>
       </tr>
     );

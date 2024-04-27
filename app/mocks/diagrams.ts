@@ -7,7 +7,8 @@ const diagrams: Diagram[] = [
         image: "/diagram1.png",
         nodeDataArray: [
             {
-                key: "Products",
+                key: 1,
+                name: "Products",
                 visibility: true,
                 location: { x: 250, y: 250 },
                 items: [
@@ -72,7 +73,8 @@ const diagrams: Diagram[] = [
                 ]
             },
             {
-                key: "Suppliers",
+                key: 2,
+                name: "Suppliers",
                 visibility: false,
                 location: { x: 500, y: 0 },
                 items: [
@@ -122,7 +124,8 @@ const diagrams: Diagram[] = [
                 inheriteditems: []
             },
             {
-                key: "Categories",
+                key: 3,
+                name: "Categories",
                 visibility: true,
                 location: { x: 0, y: 30 },
                 items: [
@@ -166,7 +169,8 @@ const diagrams: Diagram[] = [
                 ]
             },
             {
-                key: "Order Details",
+                name: "Order Details",
+                key: 4,
                 visibility: true,
                 location: { x: 600, y: 350 },
                 items: [
@@ -211,11 +215,11 @@ const diagrams: Diagram[] = [
             }
         ],
         linkDataArray: [
-            { from: "Products", to: "Suppliers", text: "0..N", toText: "1" },
-            { from: "Products", to: "Categories", text: "0..N", toText: "1" },
-            { from: "Order Details", to: "Products", text: "0..N", toText: "1" },
-            { from: "Categories", to: "Suppliers", text: "0..N", toText: "1" },
-            { from: "Order Details", to: "Categories", text: "0..N", toText: "1" }
+            { from: 1, to: 2, text: "0..N", toText: "1" },
+            { from: 1, to: 3, text: "0..N", toText: "1" },
+            { from: 4, to: 1, text: "0..N", toText: "1" },
+            { from: 2, to: 3, text: "0..N", toText: "1" },
+            { from: 4, to: 3, text: "0..N", toText: "1" }
         ]
     },
     {
@@ -225,7 +229,8 @@ const diagrams: Diagram[] = [
         image: "/diagram1.png",
         nodeDataArray: [
             {
-                key: "Products",
+                key: 1,
+                name: "Products",
                 visibility: true,
                 location: { x: 250, y: 250 },
                 items: [
@@ -290,7 +295,8 @@ const diagrams: Diagram[] = [
                 ]
             },
             {
-                key: "Suppliers",
+                key: 2,
+                name: "Suppliers",
                 visibility: false,
                 location: { x: 500, y: 0 },
                 items: [
@@ -342,7 +348,7 @@ const diagrams: Diagram[] = [
 
         ],
         linkDataArray: [
-            { from: "Products", to: "Suppliers", text: "0..N", toText: "1" },
+            { from: 1, to: 2, text: "0..N", toText: "1" },
 
         ]
     },
@@ -358,15 +364,16 @@ export interface Diagram {
     linkDataArray: LinkData[];
 }
 
-interface NodeData {
-    key: string;
+export interface NodeData {
+    key: number;
+    name: string;
     visibility: boolean;
     location: { x: number; y: number };
     items: Item[];
     inheriteditems: Item[];
 }
 
-interface Item {
+export interface Item {
     name: string;
     iskey: boolean;
     figure: string;
@@ -374,9 +381,9 @@ interface Item {
     color: string;
 }
 
-interface LinkData {
-    from: string;
-    to: string;
+export interface LinkData {
+    from: number;
+    to: number;
     text: string;
     toText: string;
 }
