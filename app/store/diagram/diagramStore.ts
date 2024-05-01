@@ -1,6 +1,6 @@
 import { createStore } from 'zustand'
 import { ObjectData } from 'gojs';
-import { DiagramState } from './types';
+import { DiagramState, Item } from './types';
 
 export type DiagramActions = {
     modifyNode: (index: number, data: ObjectData) => void;
@@ -16,6 +16,10 @@ export type DiagramActions = {
     setModelData: (data: ObjectData) => void;
     setSelectedData: (data: ObjectData) => void;
     removeSelectedData: () => void;
+    setModifiedLinks: (data: Array<ObjectData>) => void;
+    setModifiedItems: (data: Array<Item>) => void;
+    cleanModifiedItems: () => void;
+    cleanModifiedLinks: () => void;
 }
 
 export type DiagramStore = DiagramState & DiagramActions;
@@ -235,7 +239,9 @@ export const defaultInitialState: DiagramState = {
     ],
     modelData: {},
     skipsDiagramUpdate: false,
-    selectedData: {}
+    selectedData: {},
+    modifiedLinks: null,
+    modifiedItems: null
 };
 
 export const createDiagramStore = (initState: DiagramState = defaultInitialState) => {
@@ -265,6 +271,27 @@ export const createDiagramStore = (initState: DiagramState = defaultInitialState
         setNodeDataArray: (data: Array<ObjectData>) => set({ nodeDataArray: data }),
         setLinkDataArray: (data: Array<ObjectData>) => set({ linkDataArray: data }),
         setModelData: (data: ObjectData) => set({ modelData: data }),
-        removeSelectedData: () => set({ selectedData: {} })
+        removeSelectedData: () => set({ selectedData: {} }),
+        setModifiedItems: (data: Array<Item>) => {
+            set((state) => {
+                const updatedNodeDataArray = state.nodeDataArray.map((node) => {
+                    if (node.key === state.selectedData.key) {
+                        return {
+                            ...node,
+                            items: data
+                        };
+                    }
+                    return node;
+                });
+
+                return {
+                    modifiedItems: data,
+                    nodeDataArray: updatedNodeDataArray
+                };
+            });
+        },
+        setModifiedLinks: (data: Array<ObjectData>) => set({ modifiedLinks: data }),
+        cleanModifiedItems: () => set({ modifiedItems: null }),
+        cleanModifiedLinks: () => set({ modifiedLinks: null })
     }));
 }

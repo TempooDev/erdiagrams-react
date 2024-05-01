@@ -174,7 +174,7 @@ class Board extends React.Component<DiagramProps> {
    * @param value the new value of that property
    * @param isBlur whether the input event was a blur, indicating the edit is complete
    */
-  public handleInputChange(path: string, value: string, isBlur: boolean) {
+  public handleInputChange(path: string, value: any, isBlur: boolean) {
     const data = this.props.store.selectedData as go.ObjectData; // only reached if selectedData isn't null
     if (isBlur) {
       const key = data.key;
@@ -238,6 +238,7 @@ class Board extends React.Component<DiagramProps> {
         <SelectionInspector
           selectedData={selectedData}
           onInputChange={this.handleInputChange}
+          store={this.props.store}
         />
       );
     }

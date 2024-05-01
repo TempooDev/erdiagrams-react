@@ -7,12 +7,11 @@ import * as React from 'react';
 import { InspectorRow } from './InspectorRow';
 
 import './Inspector.css';
-import go from 'gojs';
-import { Item } from '@/app/mocks/diagrams';
 
 interface SelectionInspectorProps {
   selectedData: any;
-  onInputChange: (id: string, value: string, isBlur: boolean) => void;
+  onInputChange: (id: string, value: any, isBlur: boolean) => void;
+  store: any;
 }
 
 export class SelectionInspector extends React.PureComponent<
@@ -35,6 +34,7 @@ export class SelectionInspector extends React.PureComponent<
             key={k}
             id={k}
             value={val}
+            store={this.props.store}
             onInputChange={this.props.onInputChange}
           />
         );
@@ -50,6 +50,7 @@ export class SelectionInspector extends React.PureComponent<
             key={k}
             id={k}
             value={val}
+            store={this.props.store}
             onInputChange={this.props.onInputChange}
           />
         );
@@ -61,6 +62,7 @@ export class SelectionInspector extends React.PureComponent<
             key={k}
             id={k}
             value={val}
+            store={this.props.store}
             onInputChange={this.props.onInputChange}
           />
         );
