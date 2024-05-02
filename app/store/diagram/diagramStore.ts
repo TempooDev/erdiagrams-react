@@ -283,7 +283,7 @@ export const createDiagramStore = (initState: DiagramState = defaultInitialState
                     }
                     return node;
                 });
-
+                console.log(updatedNodeDataArray);
                 return {
                     modifiedItems: data,
                     nodeDataArray: updatedNodeDataArray

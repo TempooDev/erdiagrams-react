@@ -21,22 +21,27 @@ export class SelectionInspector extends React.PureComponent<
   /**
    * Render the object data, passing down property keys and values.
    */
+  propertyTypes = ['varchar', 'int', 'boolean', 'date', 'float']; //TODO: move to a constant file
   private renderObjectDetails() {
     const selObj = this.props.selectedData;
     const dets = [];
 
-    console.log(selObj);
     for (const k in selObj) {
       if (k === 'name') {
         const val = selObj[k];
         const row = (
-          <InspectorRow
-            key={k}
-            id={k}
-            value={val}
-            store={this.props.store}
-            onInputChange={this.props.onInputChange}
-          />
+          <tr>
+            <td>
+              <table>
+                <thead>{k}</thead>
+                <tbody>
+                  <td>
+                    <input value={val}></input>
+                  </td>
+                </tbody>
+              </table>
+            </td>
+          </tr>
         );
       }
       if (k === 'items') {
@@ -46,25 +51,72 @@ export class SelectionInspector extends React.PureComponent<
         const val = selObj[k];
 
         const items = (
-          <InspectorRow
-            key={k}
-            id={k}
-            value={val}
-            store={this.props.store}
-            onInputChange={this.props.onInputChange}
-          />
+          <tr>
+            <td>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Is Key</th>
+                    <th>Type</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {val.map((item: any, index: number) => (
+                    <tr key={index}>
+                      <td>
+                        <input value={item.name} id={item.name} />
+                      </td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          id={item.name}
+                          name={item.name}
+                          checked={item.isKey as boolean}
+                          defaultChecked={item.isKey as boolean}
+                        />
+                      </td>
+                      <td>
+                        <select
+                          value={item.type}
+                          id={item.type}
+                          defaultValue={item.type}
+                        >
+                          {this.propertyTypes.map((type) => (
+                            <option
+                              key={type}
+                              value={type}
+                              selected={item.type}
+                            >
+                              {type}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </td>
+          </tr>
         );
+
         dets.push(items);
       } else {
         const val = selObj[k];
         const row = (
-          <InspectorRow
-            key={k}
-            id={k}
-            value={val}
-            store={this.props.store}
-            onInputChange={this.props.onInputChange}
-          />
+          <tr>
+            <td>
+              <table>
+                <thead>{k}</thead>
+                <tbody>
+                  <td>
+                    <input value={val}></input>
+                  </td>
+                </tbody>
+              </table>
+            </td>
+          </tr>
         );
 
         dets.push(row);
@@ -87,9 +139,11 @@ export class SelectionInspector extends React.PureComponent<
   public render() {
     return (
       <div id="myInspectorDiv" className="inspector">
-        <table>
-          <tbody>{this.renderObjectDetails()}</tbody>
-        </table>
+        <form action="">
+          <table>
+            <tbody>{this.renderObjectDetails()}</tbody>
+          </table>
+        </form>
       </div>
     );
   }

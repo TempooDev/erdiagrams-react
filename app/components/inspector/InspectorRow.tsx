@@ -77,7 +77,8 @@ export class InspectorRow extends React.PureComponent<InspectorRowProps, {}> {
                         type="checkbox"
                         id={item.name}
                         name={item.name}
-                        checked={item.isKey as boolean}
+                        checked={item.isKey}
+                        defaultChecked={item.isKey}
                         onChange={this.handleInputChange}
                       />
                     </td>
@@ -86,6 +87,7 @@ export class InspectorRow extends React.PureComponent<InspectorRowProps, {}> {
                         value={item.type}
                         id={item.type}
                         onChange={this.handleInputChange}
+                        defaultValue={item.type}
                       >
                         {propertyTypes.map((type) => (
                           <option key={type} value={type} selected={item.type}>

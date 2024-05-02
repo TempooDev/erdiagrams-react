@@ -351,7 +351,6 @@ const diagrams: Diagram[] = [
         ],
         linkDataArray: [
             { from: 1, to: 2, text: "0..N", toText: "1" },
-
         ]
     },
 
