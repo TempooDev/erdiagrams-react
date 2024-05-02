@@ -75,7 +75,8 @@ export class InspectorRow extends React.PureComponent<InspectorRowProps, {}> {
                     <td>
                       <input
                         type="checkbox"
-                        id={item.isKey}
+                        id={item.name}
+                        name={item.name}
                         checked={item.isKey as boolean}
                         onChange={this.handleInputChange}
                       />
