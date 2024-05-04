@@ -4,13 +4,13 @@ import { produce } from 'immer';
 import * as React from 'react';
 
 import { DiagramWrapper } from '../diagram/DiagramWrapper';
-import { SelectionInspector } from '../inspector/SelectionInspector';
 
 import './Board.css';
 
 import { KeyService } from '@/app/utils/KeyServices';
 import { DiagramStore } from '@/app/store';
 import diagrams from '@/app/mocks/diagrams';
+import SelectionInspector from '../inspector/SelectionInspector';
 
 type DiagramProps = { store: DiagramStore; id?: string };
 
@@ -256,11 +256,7 @@ class Board extends React.Component<DiagramProps> {
         <label></label>
 
         <dialog id="my_modal_2" className="modal">
-          <div className="modal-box">
-            <form method="dialog" className="modal-backdrop text-slate-50">
-              {inspector}
-            </form>
-          </div>
+          <div className="modal-box">{inspector}</div>
         </dialog>
       </div>
     );
