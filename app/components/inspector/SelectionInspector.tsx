@@ -16,6 +16,8 @@ export default function SelectionInspector(props: SelectionInspectorProps) {
     const [items, setItems] = useState([
       { key: '', name: '', type: '', isKey: false },
     ]);
+    const [selectedData, setSelectedData] = useState(props.selectedData);
+
     const handleInputChange = (
       event: React.FormEvent<HTMLInputElement | HTMLSelectElement>,
       index?: any
@@ -36,6 +38,10 @@ export default function SelectionInspector(props: SelectionInspectorProps) {
       }
       if (event.currentTarget.type === 'text') {
         if (event.currentTarget.id === 'name') {
+          setSelectedData({
+            ...selectedData,
+            [event.currentTarget.id]: event.currentTarget.value,
+          });
         } else {
           const list: {
             key: string;
@@ -63,6 +69,7 @@ export default function SelectionInspector(props: SelectionInspectorProps) {
         };
         setItems(list);
       }
+      setSelectedData({ ...selectedData, items: items });
     };
     const handleSubmit = (event: React.FormEvent<HTMLButtonElement>) => {};
 
