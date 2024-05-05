@@ -231,7 +231,7 @@ class Board extends React.Component<DiagramProps> {
   }
 
   public render() {
-    const selectedData = this.props.store.selectedData;
+    const selectedData: go.ObjectData = this.props.store.selectedData;
     let inspector;
     if (selectedData !== null) {
       inspector = (
