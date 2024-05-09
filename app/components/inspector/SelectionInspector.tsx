@@ -32,8 +32,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
             return item;
           }),
         });
-      }
-      if (event.target.id === 'items-name') {
+      } else if (event.target.id === 'items-name') {
         setData({
           ...data,
           items: data.items.map((item: any, index: number) => {
@@ -46,8 +45,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
             return item;
           }),
         });
-      }
-      if (event.target.id === 'items-type') {
+      } else if (event.target.id === 'items-type') {
         setData({
           ...data,
           items: data.items.map((item: any, index: number) => {
