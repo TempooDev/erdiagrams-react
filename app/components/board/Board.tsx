@@ -237,7 +237,6 @@ class Board extends React.Component<DiagramProps> {
       inspector = (
         <SelectionInspector
           selectedData={selectedData}
-          onInputChange={this.handleInputChange}
           store={this.props.store}
         />
       );
