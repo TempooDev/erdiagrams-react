@@ -19,6 +19,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
     const handleChange = (
       event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     ) => {
+      // TODO: change to swithc
       if (event.target.id === 'items-isKey') {
         setData({
           ...data,
