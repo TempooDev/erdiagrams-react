@@ -1,94 +1,156 @@
-/*
- *  Copyright (C) 1998-2023 by Northwoods Software Corporation. All Rights Reserved.
- */
-
 import * as React from 'react';
 
-import { InspectorRow } from './InspectorRow';
-
 import './Inspector.css';
-import go from 'gojs';
-import { Item } from '@/app/mocks/diagrams';
+import { useEffect, useState } from 'react';
+import { LinkData, NodeData } from '@/app/store/diagram/types';
 
 interface SelectionInspectorProps {
-  selectedData: any;
-  onInputChange: (id: string, value: string, isBlur: boolean) => void;
+  selectedData: go.ObjectData;
+  store: any;
 }
 
-export class SelectionInspector extends React.PureComponent<
-  SelectionInspectorProps,
-  {}
-> {
-  /**
-   * Render the object data, passing down property keys and values.
-   */
-  private renderObjectDetails() {
-    const selObj = this.props.selectedData;
-    const dets = [];
+const SelectionInspector: React.FC<SelectionInspectorProps> = (
+  props: SelectionInspectorProps
+) => {
+  {
+    const propertyTypes = ['varchar', 'int', 'boolean', 'date', 'float']; //TODO: move to a constant file
+    const [data, setData] = useState(props.selectedData || {});
 
-    console.log(selObj);
-    for (const k in selObj) {
-      if (k === 'name') {
-        const val = selObj[k];
-        const row = (
-          <InspectorRow
-            key={k}
-            id={k}
-            value={val}
-            onInputChange={this.props.onInputChange}
-          />
-        );
+    const handleChange = (
+      event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    ) => {
+      if (event.target.id === 'items-isKey') {
+        setData({
+          ...data,
+          items: data.items.map((item: any, index: number) => {
+            if (index === parseInt(event.target.name)) {
+              return {
+                ...item,
+                isKey: event.target.value === 'on' ? true : false,
+              };
+            }
+            return item;
+          }),
+        });
       }
-      if (k === 'items') {
-        //si es la primer propiedad items añade un row con el nombre
-        const row = <h4>Items</h4>;
-        dets.push(row);
-        const val = selObj[k];
-
-        const items = (
-          <InspectorRow
-            key={k}
-            id={k}
-            value={val}
-            onInputChange={this.props.onInputChange}
-          />
-        );
-        dets.push(items);
+      if (event.target.id === 'items-name') {
+        setData({
+          ...data,
+          items: data.items.map((item: any, index: number) => {
+            if (index === parseInt(event.target.name)) {
+              return {
+                ...item,
+                name: event.target.value,
+              };
+            }
+            return item;
+          }),
+        });
+      }
+      if (event.target.id === 'items-type') {
+        setData({
+          ...data,
+          items: data.items.map((item: any, index: number) => {
+            if (index === parseInt(event.target.name)) {
+              return {
+                ...item,
+                type: event.target.value,
+              };
+            }
+            return item;
+          }),
+        });
       } else {
-        const val = selObj[k];
-        const row = (
-          <InspectorRow
-            key={k}
-            id={k}
-            value={val}
-            onInputChange={this.props.onInputChange}
-          />
-        );
-
-        dets.push(row);
-
-        if (
-          k === 'figure' ||
-          k === 'color' ||
-          k === 'visibility' ||
-          k === 'location' ||
-          k === 'inheriteditems' ||
-          k === 'key'
-        ) {
-          dets.pop();
-        }
+        setData({
+          ...data,
+          [event.target.name]: event.target.value,
+        });
       }
-    }
-    return dets;
-  }
+    };
+    const handleSubmit = (event: React.FormEvent) => {
+      event.preventDefault();
+      props.store.modifyNode(data.key, data);
+      props.store.setSkips(false);
 
-  public render() {
+      setData({});
+      props.store.setSelectedData(null);
+    };
+    useEffect(() => {
+      const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+          setData({}); // Limpiar data si se presiona Escape
+          props.store.setSelectedData(null);
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+
+      // Limpiar el event listener cuando el componente se desmonte
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }, []);
     return (
-      <div id="myInspectorDiv" className="inspector">
-        <table>
-          <tbody>{this.renderObjectDetails()}</tbody>
-        </table>
-      </div>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Name:
+          <input
+            type="text"
+            name="name"
+            value={data.name}
+            defaultValue={data.name}
+            onChange={handleChange}
+          />
+        </label>
+        <label>
+          Items:
+          {data.items &&
+            data.items.map((item: any, index: number) => (
+              <div key={index}>
+                <label>
+                  Name:
+                  <input
+                    id="items-name"
+                    type="text"
+                    name={`${index}`}
+                    defaultValue={item.name}
+                    onChange={handleChange}
+                  />
+                </label>
+                <label>
+                  Is Key:
+                  <input
+                    id="items-isKey"
+                    type="checkbox"
+                    name={`${index}`}
+                    checked={item.isKey}
+                    defaultChecked={item.isKey}
+                    onChange={handleChange}
+                  />
+                </label>
+                <label>
+                  Type:
+                  <select
+                    id="items-type"
+                    name={`${index}`}
+                    value={item.type}
+                    defaultValue={item.type}
+                    onChange={handleChange}
+                  >
+                    {propertyTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            ))}
+        </label>
+        <button type="submit">Submit</button>
+      </form>
     );
   }
-}
+};
+
+export default SelectionInspector;

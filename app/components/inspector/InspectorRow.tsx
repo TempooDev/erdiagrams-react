@@ -1,16 +1,18 @@
-/*
- *  Copyright (C) 1998-2023 by Northwoods Software Corporation. All Rights Reserved.
- */
-
+'use client';
 import * as React from 'react';
 import './Inspector.css';
+import { Item } from '@/app/store/diagram/types';
 
 interface InspectorRowProps {
   id: string;
   value: any;
-  onInputChange: (key: string, value: string, isBlur: boolean) => void;
+  store: any;
+  onInputChange: (key: string, value: any, isBlur: boolean) => void;
 }
-
+interface InspectorState {
+  items: Item[];
+  links: go.ObjectData[];
+}
 export class InspectorRow extends React.PureComponent<InspectorRowProps, {}> {
   constructor(props: InspectorRowProps) {
     super(props);
@@ -18,12 +20,35 @@ export class InspectorRow extends React.PureComponent<InspectorRowProps, {}> {
   }
 
   private handleInputChange(e: any) {
-    this.props.onInputChange(this.props.id, e.target.value, e.type === 'blur');
+    const value = e.target.value;
+    const name = e.target.name;
+    const checked = e.target.checked;
+    const type = e.target.type;
+    const id = e.target.id;
+    //buscar en this.props.value el objeto con el id y cambiar el valor
+    if (this.props.id === 'items') {
+      const items = this.props.value;
+      const item = items.find((item: any) => item.name === id); //item a cambiar
+      //eliminar el item y agregarlo con los nuevos valores
+      const updatedItems = this.props.value.filter(
+        (item: any) => item.name !== id
+      ); //resto de items
+      let updatedItem = item;
+
+      if (type === 'checkbox') {
+        updatedItem.isKey = checked;
+      } else {
+        updatedItem.name = value;
+      }
+      const newItems = [...updatedItems, updatedItem];
+      this.props.store.setModifiedItems(newItems);
+    }
   }
 
   public render() {
     const propertyTypes = ['varchar', 'int', 'boolean', 'date', 'float']; //TODO: move to a constant file
     let val = this.props.value;
+    //crear un botón para agregar items, al crear un item se agrega un objeto con los valores por defecto
 
     if (this.props.id === 'items') {
       return (
@@ -43,20 +68,26 @@ export class InspectorRow extends React.PureComponent<InspectorRowProps, {}> {
                     <td>
                       <input
                         value={item.name}
+                        id={item.name}
                         onChange={this.handleInputChange}
                       />
                     </td>
                     <td>
                       <input
                         type="checkbox"
-                        checked={item.isKey as boolean}
+                        id={item.name}
+                        name={item.name}
+                        checked={item.isKey}
+                        defaultChecked={item.isKey}
                         onChange={this.handleInputChange}
                       />
                     </td>
                     <td>
                       <select
                         value={item.type}
+                        id={item.type}
                         onChange={this.handleInputChange}
+                        defaultValue={item.type}
                       >
                         {propertyTypes.map((type) => (
                           <option key={type} value={type} selected={item.type}>

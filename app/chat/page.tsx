@@ -50,7 +50,7 @@ export default function Chat({ params }: PageProp) {
         connection.off('ReceiveMessage');
       }
     };
-  }, []);
+  }, [apiURL, connection]);
 
   const sendMessage = async () => {
     if (connection && newMessage.trim()) {

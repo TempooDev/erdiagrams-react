@@ -4,13 +4,13 @@ import { produce } from 'immer';
 import * as React from 'react';
 
 import { DiagramWrapper } from '../diagram/DiagramWrapper';
-import { SelectionInspector } from '../inspector/SelectionInspector';
 
 import './Board.css';
 
 import { KeyService } from '@/app/utils/KeyServices';
 import { DiagramStore } from '@/app/store';
 import diagrams from '@/app/mocks/diagrams';
+import SelectionInspector from '../inspector/SelectionInspector';
 
 type DiagramProps = { store: DiagramStore; id?: string };
 
@@ -174,7 +174,7 @@ class Board extends React.Component<DiagramProps> {
    * @param value the new value of that property
    * @param isBlur whether the input event was a blur, indicating the edit is complete
    */
-  public handleInputChange(path: string, value: string, isBlur: boolean) {
+  public handleInputChange(path: string, value: any, isBlur: boolean) {
     const data = this.props.store.selectedData as go.ObjectData; // only reached if selectedData isn't null
     if (isBlur) {
       const key = data.key;
@@ -231,13 +231,14 @@ class Board extends React.Component<DiagramProps> {
   }
 
   public render() {
-    const selectedData = this.props.store.selectedData;
+    const selectedData: go.ObjectData = this.props.store.selectedData;
     let inspector;
     if (selectedData !== null) {
       inspector = (
         <SelectionInspector
           selectedData={selectedData}
           onInputChange={this.handleInputChange}
+          store={this.props.store}
         />
       );
     }
@@ -255,11 +256,7 @@ class Board extends React.Component<DiagramProps> {
         <label></label>
 
         <dialog id="my_modal_2" className="modal">
-          <div className="modal-box">
-            <form method="dialog" className="modal-backdrop text-slate-50">
-              {inspector}
-            </form>
-          </div>
+          <div className="modal-box">{inspector}</div>
         </dialog>
       </div>
     );

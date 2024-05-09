@@ -1,3 +1,5 @@
+import { Diagram } from "../store/diagram/types";
+
 //añadir implementacion de Item donde sea necesario
 const diagrams: Diagram[] = [
     {
@@ -349,43 +351,11 @@ const diagrams: Diagram[] = [
         ],
         linkDataArray: [
             { from: 1, to: 2, text: "0..N", toText: "1" },
-
         ]
     },
 
 ];
 
-export interface Diagram {
-    id: string;
-    userId: string;
-    name: string;
-    image: string;
-    nodeDataArray: NodeData[];
-    linkDataArray: LinkData[];
-}
 
-export interface NodeData {
-    key: number;
-    name: string;
-    visibility: boolean;
-    location: { x: number; y: number };
-    items: Item[];
-    inheriteditems: Item[];
-}
-
-export interface Item {
-    name: string;
-    iskey: boolean;
-    figure: string;
-    type: string;
-    color: string;
-}
-
-export interface LinkData {
-    from: number;
-    to: number;
-    text: string;
-    toText: string;
-}
 
 export default diagrams;
