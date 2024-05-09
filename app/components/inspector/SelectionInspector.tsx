@@ -91,7 +91,10 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
       };
     }, [props.store]);
     return (
-      <form onSubmit={handleSubmit}>
+      <form
+        className="grid grid-cols-1 gap-4 place-items-center"
+        onSubmit={handleSubmit}
+      >
         <label>
           Name:
           <input
@@ -147,7 +150,9 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
               </div>
             ))}
         </label>
-        <button type="submit">Submit</button>
+        <button className="btn-secundary" type="submit">
+          Submit
+        </button>
       </form>
     );
   }
