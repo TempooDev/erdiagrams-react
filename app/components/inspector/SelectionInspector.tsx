@@ -89,7 +89,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
       };
-    }, []);
+    }, [props.store]);
     return (
       <form onSubmit={handleSubmit}>
         <label>
