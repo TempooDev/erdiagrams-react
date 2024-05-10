@@ -17,7 +17,6 @@ type DiagramProps = { store: DiagramStore; id?: string };
 class Board extends React.Component<DiagramProps> {
   private mapNodeKeyIdx: Map<go.Key, number>;
   private mapLinkKeyIdx: Map<go.Key, number>;
-
   constructor(props: any) {
     super(props);
     if (this.props.id) {
@@ -94,6 +93,7 @@ class Board extends React.Component<DiagramProps> {
     const modifiedNodeMap = new Map<go.Key, go.ObjectData>();
     const modifiedLinkMap = new Map<go.Key, go.ObjectData>();
 
+    const larr = this.props.store.linkDataArray;
     const narr = this.props.store.nodeDataArray;
     if (modifiedNodeData) {
       modifiedNodeData.forEach((nd: go.ObjectData) => {
@@ -127,8 +127,6 @@ class Board extends React.Component<DiagramProps> {
       if (nd) this.props.store.removeNode(nd.key);
       this.refreshNodeIndex(this.props.store.nodeDataArray);
     }
-
-    const larr = this.props.store.linkDataArray;
     if (modifiedLinkData) {
       modifiedLinkData.forEach((ld: go.ObjectData) => {
         modifiedLinkMap.set(ld.key, ld);
@@ -229,7 +227,16 @@ class Board extends React.Component<DiagramProps> {
     });
     this.props.store.setSkips(false);
   }
+  public handleInspectorChange = (newData: go.ObjectData) => {
+    // Crear un objeto IncrementalData que describe los cambios
+    const obj: go.IncrementalData = {
+      modifiedNodeData: [newData], // Supongamos que estás modificando un nodo
+      // Puedes agregar aquí cualquier otro cambio que necesites
+    };
 
+    // Llamar a handleModelChange para actualizar el diagrama
+    this.handleModelChange(obj);
+  };
   public render() {
     const selectedData: go.ObjectData = this.props.store.selectedData;
     let inspector;
@@ -238,6 +245,7 @@ class Board extends React.Component<DiagramProps> {
         <SelectionInspector
           selectedData={selectedData}
           store={this.props.store}
+          onInspectorChange={this.handleInspectorChange}
         />
       );
     }

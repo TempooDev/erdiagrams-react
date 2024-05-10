@@ -7,6 +7,7 @@ import { LinkData, NodeData } from '@/app/store/diagram/types';
 interface SelectionInspectorProps {
   selectedData: go.ObjectData;
   store: any;
+  onInspectorChange: (data: go.ObjectData) => void;
 }
 
 const SelectionInspector: React.FC<SelectionInspectorProps> = (
@@ -68,11 +69,9 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
     };
     const handleSubmit = (event: React.FormEvent) => {
       event.preventDefault();
-      props.store.modifyNode(data.key, data);
-      props.store.setSkips(false);
-
-      setData({});
       props.store.setSelectedData(null);
+      props.onInspectorChange(data);
+      setData({});
     };
     useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
