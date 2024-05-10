@@ -247,8 +247,8 @@ export const defaultInitialState: DiagramState = {
 export const createDiagramStore = (initState: DiagramState = defaultInitialState) => {
     return createStore<DiagramStore>((set) => ({
         ...defaultInitialState,
-        modifyNode: (index: number, data: ObjectData) => set((state) => ({
-            nodeDataArray: state.nodeDataArray.map((node, i) => i === index ? data : node)
+        modifyNode: (key: number, data: ObjectData) => set((state) => ({
+            nodeDataArray: state.nodeDataArray.map((node, i) => node.key === key ? data : node)
         })),
         insertNode: (data: ObjectData) => set((state) => ({
             nodeDataArray: [...state.nodeDataArray, data]
