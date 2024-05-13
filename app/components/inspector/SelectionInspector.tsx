@@ -123,7 +123,6 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
                     type="checkbox"
                     name={`${index}`}
                     checked={item.isKey}
-                    defaultChecked={item.isKey}
                     onChange={handleChange}
                   />
                 </label>
