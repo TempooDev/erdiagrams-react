@@ -17,6 +17,7 @@ type DiagramProps = { store: DiagramStore; id?: string };
 class Board extends React.Component<DiagramProps> {
   private mapNodeKeyIdx: Map<go.Key, number>;
   private mapLinkKeyIdx: Map<go.Key, number>;
+  keySelected = 0;
   constructor(props: any) {
     super(props);
     if (this.props.id) {
@@ -244,7 +245,6 @@ class Board extends React.Component<DiagramProps> {
       inspector = (
         <SelectionInspector
           selectedData={selectedData}
-          store={this.props.store}
           onInspectorChange={this.handleInspectorChange}
         />
       );
@@ -252,21 +252,45 @@ class Board extends React.Component<DiagramProps> {
 
     return (
       <div>
-        <DiagramWrapper
-          nodeDataArray={this.props.store.nodeDataArray}
-          linkDataArray={this.props.store.linkDataArray}
-          modelData={this.props.store.modelData}
-          skipsDiagramUpdate={this.props.store.skipsDiagramUpdate}
-          onDiagramEvent={this.handleDiagramChange}
-          onModelChange={this.handleModelChange}
-        />
+        <span>{JSON.stringify(this.props.store.nodeDataArray)}</span>
+        {/* <DiagramWrapper
+      nodeDataArray={this.props.store.nodeDataArray}
+      linkDataArray={this.props.store.linkDataArray}
+      modelData={this.props.store.modelData}
+      skipsDiagramUpdate={this.props.store.skipsDiagramUpdate}
+      onDiagramEvent={this.handleDiagramChange}
+      onModelChange={this.handleModelChange}
+      /> */}
         <label></label>
-
+        <form onSubmit={this.handleSelectNode}>
+          <input
+            type="number"
+            placeholder="ID Nodo"
+            value={this.keySelected}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              this.keySelected = parseInt(e.target.value);
+            }}
+            readOnly // Add the readOnly attribute to make the input field read-only
+          ></input>
+          <button type="submit">Select Node</button>
+        </form>
         <dialog id="my_modal_2" className="modal">
           <div className="modal-box">{inspector}</div>
         </dialog>
       </div>
     );
+  }
+
+  public handleSelectNode(event: React.FormEvent) {
+    event.preventDefault();
+    const modal = document.getElementById('my_modal_2') as HTMLDialogElement;
+    const node = this.props.store.nodeDataArray.find(
+      (x) => x.key === this.keySelected
+    );
+    if (node) {
+      this.props.store.setSelectedData(node);
+      modal.showModal();
+    }
   }
 }
 
