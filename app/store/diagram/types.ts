@@ -27,6 +27,7 @@ export interface Item {
 }
 
 export interface LinkData {
+    key: number;
     from: number;
     to: number;
     text: string;

@@ -6,7 +6,7 @@ import { LinkData, NodeData } from '@/app/store/diagram/types';
 
 interface SelectionInspectorProps {
   selectedData: go.ObjectData;
-  store: any;
+
   onInspectorChange: (data: go.ObjectData) => void;
 }
 
@@ -69,7 +69,6 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
     };
     const handleSubmit = (event: React.FormEvent) => {
       event.preventDefault();
-      props.store.setSelectedData(null);
       props.onInspectorChange(data);
       setData({});
     };
@@ -77,7 +76,6 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === 'Escape') {
           setData({}); // Limpiar data si se presiona Escape
-          props.store.setSelectedData(null);
         }
       };
 
@@ -87,7 +85,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
       };
-    }, [props.store]);
+    }, []);
     return (
       <form
         className="grid grid-cols-1 gap-4 place-items-center"
