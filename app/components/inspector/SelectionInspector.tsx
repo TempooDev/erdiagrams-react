@@ -3,6 +3,7 @@ import * as React from 'react';
 import './Inspector.css';
 import { useEffect, useState } from 'react';
 import { LinkData, NodeData } from '@/app/store/diagram/types';
+import { useDiagramStore } from '@/app/providers/diagram-store-provider';
 
 interface SelectionInspectorProps {
   selectedData: go.ObjectData;
@@ -15,7 +16,10 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
 ) => {
   {
     const propertyTypes = ['varchar', 'int', 'boolean', 'date', 'float']; //TODO: move to a constant file
+    const level = ['1', '0..N']; //TODO: move to a constant file
     const [data, setData] = useState(props.selectedData || {});
+    const [linkData, setLinkData] = useState<any[]>([]);
+    const store = useDiagramStore((state) => state);
 
     const handleChange = (
       event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -78,7 +82,14 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
           setData({}); // Limpiar data si se presiona Escape
         }
       };
+      let links: any[] = [];
+      const filtered = store.linkDataArray.map((link) => {
+        if (link.from === data.key || link.to === data.key) {
+          links.push(link);
+        }
+      });
 
+      setLinkData(links);
       window.addEventListener('keydown', handleKeyDown);
 
       // Limpiar el event listener cuando el componente se desmonte
@@ -86,6 +97,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
         window.removeEventListener('keydown', handleKeyDown);
       };
     }, []);
+
     return (
       <form
         className="grid grid-cols-1 gap-4 place-items-center"
@@ -142,6 +154,68 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
                     ))}
                   </select>
                 </label>
+              </div>
+            ))}
+        </label>
+
+        <label>
+          Relaciones:
+          {linkData &&
+            linkData.map((link: LinkData, index: number) => (
+              <div key={index}>
+                <label>
+                  From:
+                  <input
+                    type="text"
+                    name="from"
+                    value={link.from}
+                    defaultValue={link.from}
+                    onChange={handleChange}
+                  />
+                </label>
+                <label>
+                  From level:
+                  <select
+                    id="from-level"
+                    name={`${index}`}
+                    value={link.text}
+                    defaultValue={link.text}
+                    onChange={handleChange}
+                  >
+                    {level.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  To:
+                  <input
+                    type="text"
+                    name="to"
+                    value={link.to}
+                    defaultValue={link.to}
+                    onChange={handleChange}
+                  />
+                </label>
+                <label>
+                  TO level:
+                  <select
+                    id="TO-level"
+                    name={`${index}`}
+                    value={link.toText}
+                    defaultValue={link.toText}
+                    onChange={handleChange}
+                  >
+                    {level.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <br />
               </div>
             ))}
         </label>
