@@ -4,6 +4,7 @@ import './Inspector.css';
 import { useEffect, useState } from 'react';
 import { LinkData, NodeData } from '@/app/store/diagram/types';
 import { useDiagramStore } from '@/app/providers/diagram-store-provider';
+import { KeyService } from '@/app/utils/KeyServices';
 
 interface SelectionInspectorProps {
   selectedData: go.ObjectData;
@@ -165,8 +166,27 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
                     ))}
                   </select>
                 </label>
+                <br />
               </div>
             ))}
+          <button
+            onClick={() => {
+              setData({
+                ...data,
+                items: [
+                  ...data.items,
+                  {
+                    name: '',
+                    isKey: false,
+                    type: '',
+                  },
+                ],
+              });
+            }}
+            type="button"
+          >
+            Add item
+          </button>
         </label>
 
         <label>
@@ -213,6 +233,22 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
                 <br />
               </div>
             ))}
+          <button
+            onClick={() => {
+              let link = linkData;
+              link.push({
+                key: KeyService.generateNumber(),
+                to: data.key,
+                from: data.key,
+                text: '1',
+                toText: '1',
+              });
+              setLinkData(link);
+            }}
+            type="button"
+          >
+            Add link
+          </button>
         </label>
         <button className="btn-secundary" type="submit">
           Submit

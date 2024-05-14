@@ -10,5 +10,13 @@ export class KeyService {
             return v.toString(16);
         });
     }
+
+    /**
+     * Generate a random number  key.
+     * 
+     */
+    public static generateNumber(): number {
+        return Math.floor(Math.random() * 1000000);
+    }
 }
 
