@@ -9,7 +9,7 @@ import { KeyService } from '@/app/utils/KeyServices';
 interface SelectionInspectorProps {
   selectedData: go.ObjectData;
 
-  onInspectorChange: (data: go.ObjectData) => void;
+  onInspectorChange: (data: go.ObjectData, links: LinkData[]) => void;
 }
 
 const SelectionInspector: React.FC<SelectionInspectorProps> = (
@@ -19,7 +19,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
     const propertyTypes = ['varchar', 'int', 'boolean', 'date', 'float']; //TODO: move to a constant file
     const level = ['1', '0..N']; //TODO: move to a constant file
     const [data, setData] = useState(props.selectedData || {});
-    const [linkData, setLinkData] = useState<any[]>([]);
+    const [linkData, setLinkData] = useState<LinkData[]>([]);
     const [nodeName, setNodeName] = useState<any[]>([]);
     const store = useDiagramStore((state) => state);
 
@@ -66,10 +66,6 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
             return item;
           }),
         });
-      } else if (event.target.id === 'from-level') {
-        setData({ ...data, text: event.target.value });
-      } else if (event.target.id === 'to-level') {
-        setData({ ...data, toText: event.target.value });
       } else {
         setData({
           ...data,
@@ -77,9 +73,62 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
         });
       }
     };
+
+    const handleLinkChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+      if (event.target.id === 'from-level') {
+        setLinkData(
+          linkData.map((link, index) => {
+            if (index === parseInt(event.target.name)) {
+              return {
+                ...link,
+                fromText: event.target.value,
+              };
+            }
+            return link;
+          })
+        );
+      } else if (event.target.id === 'to-level') {
+        setLinkData(
+          linkData.map((link, index) => {
+            if (index === parseInt(event.target.name)) {
+              return {
+                ...link,
+                toText: event.target.value,
+              };
+            }
+            return link;
+          })
+        );
+      } else if (event.target.id === 'from-node') {
+        setLinkData(
+          linkData.map((link, index) => {
+            if (index === parseInt(event.target.name)) {
+              return {
+                ...link,
+                from: parseInt(event.target.value),
+              };
+            }
+            return link;
+          })
+        );
+      } else if (event.target.id === 'to-node') {
+        setLinkData(
+          linkData.map((link, index) => {
+            if (index === parseInt(event.target.name)) {
+              return {
+                ...link,
+                to: parseInt(event.target.value),
+              };
+            }
+            return link;
+          })
+        );
+      }
+    };
+
     const handleSubmit = (event: React.FormEvent) => {
       event.preventDefault();
-      props.onInspectorChange(data);
+      props.onInspectorChange(data, linkData);
       setData({});
       setLinkData([]);
       setNodeName([]);
@@ -195,15 +244,29 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
             linkData.map((link: LinkData, index: number) => (
               <div key={index}>
                 <label>
-                  From: {nodeName.find((f) => f.key === link.from).name}
+                  From:
+                  <select
+                    name={`${link.key}`}
+                    id="from-node"
+                    value={link.from}
+                    defaultValue={link.from}
+                    onChange={handleLinkChange}
+                  >
+                    {nodeName.map((node) => (
+                      <option key={node.key} value={node.key}>
+                        {node.name}
+                      </option>
+                    ))}
+                  </select>
                 </label>
                 <label>
                   From level:
                   <select
                     id="from-level"
-                    name={`${index}`}
+                    name={`${link.key}`}
                     value={link.text}
-                    onChange={handleChange}
+                    defaultValue={link.text}
+                    onChange={handleLinkChange}
                   >
                     {level.map((level) => (
                       <option key={level} value={level}>
@@ -213,15 +276,29 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
                   </select>
                 </label>
                 <label>
-                  TO: {nodeName.find((f) => f.key === link.to).name}
+                  To:
+                  <select
+                    name={`${link.key}`}
+                    id="to-node"
+                    value={link.to}
+                    defaultValue={link.to}
+                    onChange={handleLinkChange}
+                  >
+                    {nodeName.map((node) => (
+                      <option key={node.key} value={node.key}>
+                        {node.name}
+                      </option>
+                    ))}
+                  </select>
                 </label>
                 <label>
-                  TO level:
+                  To level:
                   <select
                     id="to-level"
-                    name={`${index}`}
+                    name={`${link.key}`}
                     value={link.toText}
-                    onChange={handleChange}
+                    defaultValue={link.toText}
+                    onChange={handleLinkChange}
                   >
                     {level.map((level) => (
                       <option key={level} value={level}>

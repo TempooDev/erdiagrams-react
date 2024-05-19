@@ -11,6 +11,7 @@ import { KeyService } from '@/app/utils/KeyServices';
 import { DiagramStore } from '@/app/store';
 import diagrams from '@/app/mocks/diagrams';
 import SelectionInspector from '../inspector/SelectionInspector';
+import { LinkData } from '@/app/store/diagram/types';
 
 type DiagramProps = { store: DiagramStore; id?: string };
 
@@ -228,18 +229,25 @@ class Board extends React.Component<DiagramProps> {
     });
     this.props.store.setSkips(false);
   }
-  public handleInspectorChange = (newData: go.ObjectData) => {
+
+  public handleInspectorChange = (
+    newData: go.ObjectData,
+    links: LinkData[]
+  ) => {
+    this.props.store.setLinkDataArray(links);
     this.props.store.modifyNode(newData.key, newData);
     this.props.store.setSelectedData({});
     // Crear un objeto IncrementalData que describe los cambios
     const obj: go.IncrementalData = {
       modifiedNodeData: [newData], // Supongamos que estás modificando un nodo
+      modifiedLinkData: links, // Supongamos que estás modificando un enlace
       // Puedes agregar aquí cualquier otro cambio que necesites
     };
 
     // Llamar a handleModelChange para actualizar el diagrama
     this.handleModelChange(obj);
   };
+
   public render() {
     const selectedData: go.ObjectData = this.props.store.selectedData;
     let inspector;
@@ -253,21 +261,22 @@ class Board extends React.Component<DiagramProps> {
     }
 
     return (
-      <div>
-        <div className="card w-96 bg-base-100 shadow-xl">
-          <div className="card-body">
-            <h2 className="card-title"> NODE DATA ARRAY !</h2>
-            <span>{JSON.stringify(this.props.store.nodeDataArray)}</span>
+      <div className="flex flex-row">
+        <div className="basis-1/2">
+          <div className="card w-96 bg-base-100 shadow-md">
+            <div className="card-body">
+              <h2 className="card-title"> NODE DATA ARRAY </h2>
+              <span>{JSON.stringify(this.props.store.nodeDataArray)}</span>
+            </div>
           </div>
-        </div>
-        <div className="card w-96 bg-base-100 shadow-xl">
-          <div className="card-body">
-            <h2 className="card-title"> LINK DATA ARRAY !</h2>
-            <span>{JSON.stringify(this.props.store.linkDataArray)}</span>
+          <div className="card w-96 bg-base-100 shadow-md">
+            <div className="card-body">
+              <h2 className="card-title"> LINK DATA ARRAY </h2>
+              <span>{JSON.stringify(this.props.store.linkDataArray)}</span>
+            </div>
           </div>
-        </div>
 
-        {/* <DiagramWrapper
+          {/* <DiagramWrapper
       nodeDataArray={this.props.store.nodeDataArray}
       linkDataArray={this.props.store.linkDataArray}
       modelData={this.props.store.modelData}
@@ -275,19 +284,22 @@ class Board extends React.Component<DiagramProps> {
       onDiagramEvent={this.handleDiagramChange}
       onModelChange={this.handleModelChange}
       /> */}
-        <form onSubmit={this.handleSelectNode}>
-          <input
-            placeholder="ID Nodo"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              this.props.store.removeSelectedData();
-              this.keySelected = parseInt(e.target.value);
-            }}
-          ></input>
-          <button type="submit">Select Node</button>
-        </form>
-        {Object.keys(selectedData).length > 0 && (
-          <div className="modal-box">{inspector}</div>
-        )}
+        </div>
+        <div className="basis-1/2 items-center">
+          <form className="" onSubmit={this.handleSelectNode}>
+            <input
+              placeholder="ID Nodo"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                this.props.store.removeSelectedData();
+                this.keySelected = parseInt(e.target.value);
+              }}
+            ></input>
+            <button type="submit">Select Node</button>
+          </form>
+          {Object.keys(selectedData).length > 0 && (
+            <div className="modal-box">{inspector}</div>
+          )}
+        </div>
       </div>
     );
   }
