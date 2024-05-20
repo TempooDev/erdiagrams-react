@@ -3,10 +3,13 @@ import * as React from 'react';
 import './Inspector.css';
 import { useEffect, useState } from 'react';
 import { LinkData, NodeData } from '@/app/store/diagram/types';
+import { useDiagramStore } from '@/app/providers/diagram-store-provider';
+import { KeyService } from '@/app/utils/KeyServices';
 
 interface SelectionInspectorProps {
   selectedData: go.ObjectData;
-  store: any;
+
+  onInspectorChange: (data: go.ObjectData) => void;
 }
 
 const SelectionInspector: React.FC<SelectionInspectorProps> = (
@@ -14,11 +17,16 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
 ) => {
   {
     const propertyTypes = ['varchar', 'int', 'boolean', 'date', 'float']; //TODO: move to a constant file
+    const level = ['1', '0..N']; //TODO: move to a constant file
     const [data, setData] = useState(props.selectedData || {});
+    const [linkData, setLinkData] = useState<any[]>([]);
+    const [nodeName, setNodeName] = useState<any[]>([]);
+    const store = useDiagramStore((state) => state);
 
     const handleChange = (
       event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     ) => {
+      // TODO: change to swithc
       if (event.target.id === 'items-isKey') {
         setData({
           ...data,
@@ -32,8 +40,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
             return item;
           }),
         });
-      }
-      if (event.target.id === 'items-name') {
+      } else if (event.target.id === 'items-name') {
         setData({
           ...data,
           items: data.items.map((item: any, index: number) => {
@@ -46,8 +53,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
             return item;
           }),
         });
-      }
-      if (event.target.id === 'items-type') {
+      } else if (event.target.id === 'items-type') {
         setData({
           ...data,
           items: data.items.map((item: any, index: number) => {
@@ -60,6 +66,10 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
             return item;
           }),
         });
+      } else if (event.target.id === 'from-level') {
+        setData({ ...data, text: event.target.value });
+      } else if (event.target.id === 'to-level') {
+        setData({ ...data, toText: event.target.value });
       } else {
         setData({
           ...data,
@@ -69,29 +79,42 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
     };
     const handleSubmit = (event: React.FormEvent) => {
       event.preventDefault();
-      props.store.modifyNode(data.key, data);
-      props.store.setSkips(false);
-
+      props.onInspectorChange(data);
       setData({});
-      props.store.setSelectedData(null);
+      setLinkData([]);
+      setNodeName([]);
     };
     useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === 'Escape') {
           setData({}); // Limpiar data si se presiona Escape
-          props.store.setSelectedData(null);
         }
       };
-
+      let links: any[] = [];
+      store.linkDataArray.map((link) => {
+        if (link.from === data.key || link.to === data.key) {
+          links.push(link);
+        }
+      });
+      let names: any[] = [];
+      store.nodeDataArray.map((node) => {
+        names.push({ key: node.key, name: node.name });
+      });
+      setLinkData(links);
+      setNodeName(names);
       window.addEventListener('keydown', handleKeyDown);
 
       // Limpiar el event listener cuando el componente se desmonte
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
       };
-    }, [props.store]);
+    }, []);
+
     return (
-      <form onSubmit={handleSubmit}>
+      <form
+        className="grid grid-cols-1 gap-4 place-items-center"
+        onSubmit={handleSubmit}
+      >
         <label>
           Name:
           <input
@@ -124,7 +147,6 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
                     type="checkbox"
                     name={`${index}`}
                     checked={item.isKey}
-                    defaultChecked={item.isKey}
                     onChange={handleChange}
                   />
                 </label>
@@ -144,10 +166,93 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
                     ))}
                   </select>
                 </label>
+                <br />
               </div>
             ))}
+          <button
+            onClick={() => {
+              setData({
+                ...data,
+                items: [
+                  ...data.items,
+                  {
+                    name: '',
+                    isKey: false,
+                    type: '',
+                  },
+                ],
+              });
+            }}
+            type="button"
+          >
+            Add item
+          </button>
         </label>
-        <button type="submit">Submit</button>
+
+        <label>
+          Relaciones:
+          {linkData &&
+            linkData.map((link: LinkData, index: number) => (
+              <div key={index}>
+                <label>
+                  From: {nodeName.find((f) => f.key === link.from).name}
+                </label>
+                <label>
+                  From level:
+                  <select
+                    id="from-level"
+                    name={`${index}`}
+                    value={link.text}
+                    onChange={handleChange}
+                  >
+                    {level.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  TO: {nodeName.find((f) => f.key === link.to).name}
+                </label>
+                <label>
+                  TO level:
+                  <select
+                    id="to-level"
+                    name={`${index}`}
+                    value={link.toText}
+                    onChange={handleChange}
+                  >
+                    {level.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <br />
+              </div>
+            ))}
+          <button
+            onClick={() => {
+              let link = linkData;
+              link.push({
+                key: KeyService.generateNumber(),
+                to: data.key,
+                from: data.key,
+                text: '1',
+                toText: '1',
+              });
+              setLinkData(link);
+            }}
+            type="button"
+          >
+            Add link
+          </button>
+        </label>
+        <button className="btn-secundary" type="submit">
+          Submit
+        </button>
       </form>
     );
   }

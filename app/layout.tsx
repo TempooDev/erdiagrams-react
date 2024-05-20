@@ -41,11 +41,6 @@ export default function RootLayout({
                 </li>
               </ul>
               <UserTabMenu />
-              <ul className="menu menu-horizontal px-1">
-                <li>
-                  <a href="/api/auth/login">Login</a>
-                </li>
-              </ul>
             </div>
           </div>
           <DiagramStoreProvider>{children}</DiagramStoreProvider>

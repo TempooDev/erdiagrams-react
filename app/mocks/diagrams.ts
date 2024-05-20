@@ -217,11 +217,11 @@ const diagrams: Diagram[] = [
             }
         ],
         linkDataArray: [
-            { from: 1, to: 2, text: "0..N", toText: "1" },
-            { from: 1, to: 3, text: "0..N", toText: "1" },
-            { from: 4, to: 1, text: "0..N", toText: "1" },
-            { from: 2, to: 3, text: "0..N", toText: "1" },
-            { from: 4, to: 3, text: "0..N", toText: "1" }
+            { key: 1, from: 1, to: 2, text: "0..N", toText: "1" },
+            { key: 2, from: 1, to: 3, text: "0..N", toText: "1" },
+            { key: 3, from: 4, to: 1, text: "0..N", toText: "1" },
+            { key: 4, from: 2, to: 3, text: "0..N", toText: "1" },
+            { key: 5, from: 4, to: 3, text: "0..N", toText: "1" }
         ]
     },
     {
@@ -350,7 +350,7 @@ const diagrams: Diagram[] = [
 
         ],
         linkDataArray: [
-            { from: 1, to: 2, text: "0..N", toText: "1" },
+            { key: 1, from: 1, to: 2, text: "0..N", toText: "1" },
         ]
     },
 

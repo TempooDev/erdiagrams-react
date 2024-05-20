@@ -8,7 +8,7 @@ export default function UserTabMenu() {
   if (error) return <div>{error.message}</div>;
 
   return (
-    user && (
+    (user && (
       <div className="dropdown dropdown-end">
         <div
           tabIndex={0}
@@ -37,6 +37,13 @@ export default function UserTabMenu() {
           </li>
         </ul>
       </div>
-    )
+    )) ||
+    (!user && (
+      <ul className="menu menu-horizontal px-1">
+        <li>
+          <a href="/api/auth/login">Login</a>
+        </li>
+      </ul>
+    ))
   );
 }

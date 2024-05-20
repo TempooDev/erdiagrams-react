@@ -17,7 +17,7 @@ type DiagramProps = { store: DiagramStore; id?: string };
 class Board extends React.Component<DiagramProps> {
   private mapNodeKeyIdx: Map<go.Key, number>;
   private mapLinkKeyIdx: Map<go.Key, number>;
-
+  keySelected = 0;
   constructor(props: any) {
     super(props);
     if (this.props.id) {
@@ -94,6 +94,7 @@ class Board extends React.Component<DiagramProps> {
     const modifiedNodeMap = new Map<go.Key, go.ObjectData>();
     const modifiedLinkMap = new Map<go.Key, go.ObjectData>();
 
+    const larr = this.props.store.linkDataArray;
     const narr = this.props.store.nodeDataArray;
     if (modifiedNodeData) {
       modifiedNodeData.forEach((nd: go.ObjectData) => {
@@ -127,8 +128,6 @@ class Board extends React.Component<DiagramProps> {
       if (nd) this.props.store.removeNode(nd.key);
       this.refreshNodeIndex(this.props.store.nodeDataArray);
     }
-
-    const larr = this.props.store.linkDataArray;
     if (modifiedLinkData) {
       modifiedLinkData.forEach((ld: go.ObjectData) => {
         modifiedLinkMap.set(ld.key, ld);
@@ -229,37 +228,79 @@ class Board extends React.Component<DiagramProps> {
     });
     this.props.store.setSkips(false);
   }
+  public handleInspectorChange = (newData: go.ObjectData) => {
+    this.props.store.modifyNode(newData.key, newData);
+    this.props.store.setSelectedData({});
+    // Crear un objeto IncrementalData que describe los cambios
+    const obj: go.IncrementalData = {
+      modifiedNodeData: [newData], // Supongamos que estás modificando un nodo
+      // Puedes agregar aquí cualquier otro cambio que necesites
+    };
 
+    // Llamar a handleModelChange para actualizar el diagrama
+    this.handleModelChange(obj);
+  };
   public render() {
     const selectedData: go.ObjectData = this.props.store.selectedData;
     let inspector;
-    if (selectedData !== null) {
+    if (Object.keys(selectedData).length > 0) {
       inspector = (
         <SelectionInspector
           selectedData={selectedData}
-          store={this.props.store}
+          onInspectorChange={this.handleInspectorChange}
         />
       );
     }
 
     return (
       <div>
-        <DiagramWrapper
-          nodeDataArray={this.props.store.nodeDataArray}
-          linkDataArray={this.props.store.linkDataArray}
-          modelData={this.props.store.modelData}
-          skipsDiagramUpdate={this.props.store.skipsDiagramUpdate}
-          onDiagramEvent={this.handleDiagramChange}
-          onModelChange={this.handleModelChange}
-        />
-        <label></label>
+        <div className="card w-96 bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h2 className="card-title"> NODE DATA ARRAY !</h2>
+            <span>{JSON.stringify(this.props.store.nodeDataArray)}</span>
+          </div>
+        </div>
+        <div className="card w-96 bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h2 className="card-title"> LINK DATA ARRAY !</h2>
+            <span>{JSON.stringify(this.props.store.linkDataArray)}</span>
+          </div>
+        </div>
 
-        <dialog id="my_modal_2" className="modal">
+        {/* <DiagramWrapper
+      nodeDataArray={this.props.store.nodeDataArray}
+      linkDataArray={this.props.store.linkDataArray}
+      modelData={this.props.store.modelData}
+      skipsDiagramUpdate={this.props.store.skipsDiagramUpdate}
+      onDiagramEvent={this.handleDiagramChange}
+      onModelChange={this.handleModelChange}
+      /> */}
+        <form onSubmit={this.handleSelectNode}>
+          <input
+            placeholder="ID Nodo"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              this.props.store.removeSelectedData();
+              this.keySelected = parseInt(e.target.value);
+            }}
+          ></input>
+          <button type="submit">Select Node</button>
+        </form>
+        {Object.keys(selectedData).length > 0 && (
           <div className="modal-box">{inspector}</div>
-        </dialog>
+        )}
       </div>
     );
   }
+
+  handleSelectNode = (event: React.FormEvent) => {
+    event.preventDefault();
+    const node = this.props.store.nodeDataArray.find(
+      (x) => x.key === this.keySelected
+    );
+    if (node) {
+      this.props.store.setSelectedData(node);
+    }
+  };
 }
 
 function getDiagram(id: any) {
