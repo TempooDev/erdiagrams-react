@@ -16,7 +16,8 @@ export default function Home({ params }: HomeProps) {
   const [connection, setConnection] = useState<signalR.HubConnection | null>(
     null
   );
-  const apiURL = 'https://localhost:5001/board';
+  const [loading, setLoading] = useState(true);
+  const apiURL = 'https://localhost:7112/hub/board';
   useEffect(() => {
     const connect = new signalR.HubConnectionBuilder().withUrl(apiURL).build();
     setConnection(connect);
@@ -29,8 +30,10 @@ export default function Home({ params }: HomeProps) {
           store.setModelData(diagram.modelData);
           store.setSkips(diagram.skips);
         });
+        setLoading(false);
       })
       .catch((err) => {
+        setLoading(true);
         console.error('Error while connecting to SignalR Hub:', err);
       });
     return () => {
