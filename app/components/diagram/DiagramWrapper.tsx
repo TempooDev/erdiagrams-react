@@ -74,6 +74,7 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
         text: 'new node',
         color: 'lightblue',
       },
+      maxSelectionCount: 1, // users can select only one part at a time
       draggingTool: new GuidedDraggingTool(), // defined in GuidedDraggingTool.ts
       'draggingTool.horizontalGuidelineColor': 'blue',
       'draggingTool.verticalGuidelineColor': 'blue',
@@ -101,7 +102,6 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
     const itemTempl = $(
       go.Panel,
       'Horizontal',
-
       $(
         go.TextBlock,
         { font: ' 14px sans-serif', stroke: 'black' },
@@ -149,6 +149,7 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
           diagram.model.modelData.darkMode ? '#4a4a4a' : '#f7f9fc'
         )
       ),
+      // define the panel where the text will appear
       $(
         go.Panel,
         'Table',
@@ -165,12 +166,14 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
         $(
           go.TextBlock,
           {
+            editable: true,
             row: 0,
             alignment: go.Spot.Center,
             margin: new go.Margin(0, 24, 0, 2), // leave room for Button
             font: 'bold 16px sans-serif',
           },
-          new go.Binding('text', 'key'),
+
+          new go.Binding('text', 'name'),
           new go.Binding('stroke', '', (n) =>
             diagram.model.modelData.darkMode ? '#d6d6d6' : '#000000'
           )
@@ -280,6 +283,8 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
         shadowOffset: new go.Point(2, 2),
         shadowColor: '#919cab',
       },
+      new go.Binding('relinkableFrom', 'canRelink').ofModel(),
+      new go.Binding('relinkableTo', 'canRelink').ofModel(),
       $(
         go.Shape, // the link shape
         { stroke: '#f7f9fc', strokeWidth: 4 }
