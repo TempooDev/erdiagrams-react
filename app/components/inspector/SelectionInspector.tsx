@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { LinkData, NodeData } from '@/app/store/diagram/types';
 import { useDiagramStore } from '@/app/providers/diagram-store-provider';
 import { KeyService } from '@/app/utils/KeyServices';
+import { ObjectData } from 'gojs';
 
 interface SelectionInspectorProps {
   selectedData: go.ObjectData;
@@ -20,6 +21,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
     const level = ['1', '0..N']; //TODO: move to a constant file
     const [data, setData] = useState(props.selectedData || {});
     const [linkData, setLinkData] = useState<LinkData[]>([]);
+    const [links, setLinks] = useState<ObjectData[]>([]);
     const [nodeName, setNodeName] = useState<any[]>([]);
     const store = useDiagramStore((state) => state);
 
@@ -128,11 +130,18 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
 
     const handleSubmit = (event: React.FormEvent) => {
       event.preventDefault();
+      const filteredLinks = links.filter((link) => {
+        return !linkData.some((existingLink) => {
+          return existingLink.key === link.key;
+        });
+      });
+      setLinks([...filteredLinks, ...linkData]);
       props.onInspectorChange(data, linkData);
       setData({});
       setLinkData([]);
       setNodeName([]);
     };
+
     useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === 'Escape') {
@@ -140,6 +149,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
         }
       };
       let links: any[] = [];
+      setLinks(store.linkDataArray);
       store.linkDataArray.map((link) => {
         if (link.from === data.key || link.to === data.key) {
           links.push(link);
@@ -157,7 +167,19 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
       };
-    }, []);
+    }, [data.key, store.linkDataArray, store.nodeDataArray, linkData]);
+
+    const handleAddLink = () => {
+      let link = linkData;
+      link.push({
+        key: KeyService.generateNumber(),
+        to: data.key,
+        from: data.key,
+        text: '1',
+        toText: '1',
+      });
+      setLinkData(link);
+    };
 
     return (
       <form
@@ -310,20 +332,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
                 <br />
               </div>
             ))}
-          <button
-            onClick={() => {
-              let link = linkData;
-              link.push({
-                key: KeyService.generateNumber(),
-                to: data.key,
-                from: data.key,
-                text: '1',
-                toText: '1',
-              });
-              setLinkData(link);
-            }}
-            type="button"
-          >
+          <button onClick={handleAddLink} type="button">
             Add link
           </button>
         </label>
