@@ -26,7 +26,8 @@ type DiagramProps = { store: DiagramStore; id?: string };
 class Board extends React.Component<DiagramProps, BoardState> {
   private mapNodeKeyIdx: Map<go.Key, number>;
   private mapLinkKeyIdx: Map<go.Key, number>;
-  keySelected = 0;
+  keySelected = -1;
+
   constructor(props: any) {
     super(props);
 
@@ -111,6 +112,7 @@ class Board extends React.Component<DiagramProps, BoardState> {
     // maintain maps of modified data so insertions don't need slow lookups
     const modifiedNodeMap = new Map<go.Key, go.ObjectData>();
     const modifiedLinkMap = new Map<go.Key, go.ObjectData>();
+
     this.setState(
       produce((draft: BoardState) => {
         let narr = draft.nodeDataArray;
@@ -193,6 +195,7 @@ class Board extends React.Component<DiagramProps, BoardState> {
         this.props.store.setSkips(true);
       })
     );
+    console.log(JSON.stringify(this.state.nodeDataArray));
   }
 
   /**
@@ -225,6 +228,9 @@ class Board extends React.Component<DiagramProps, BoardState> {
         }
       })
     );
+    this.keySelected = -1;
+    console.log(JSON.stringify(this.state.nodeDataArray));
+    this.forceUpdate();
   }
 
   /**
@@ -289,6 +295,7 @@ class Board extends React.Component<DiagramProps, BoardState> {
       modifiedLinkData: links, // Supongamos que estás modificando un enlace
       // Puedes agregar aquí cualquier otro cambio que necesites
     };
+    console.log(JSON.stringify(this.state.nodeDataArray));
 
     // Llamar a handleModelChange para actualizar el diagrama
     this.handleModelChange(obj);
@@ -297,7 +304,7 @@ class Board extends React.Component<DiagramProps, BoardState> {
   public render() {
     const selectedData: go.ObjectData = this.state.selectedData!;
     let inspector;
-    if (Object.keys(selectedData).length > 0) {
+    if (this.keySelected > 0) {
       inspector = (
         <SelectionInspector
           selectedData={selectedData}
@@ -305,23 +312,11 @@ class Board extends React.Component<DiagramProps, BoardState> {
         />
       );
     }
+    console.log(JSON.stringify(this.state.nodeDataArray));
 
     return (
       <div className="flex flex-row">
         <div className="basis-1/2">
-          {/* <div className="card w-96 bg-base-100 shadow-md">
-            <div className="card-body">
-              <h2 className="card-title"> NODE DATA ARRAY </h2>
-              <span>{JSON.stringify(this.props.store.nodeDataArray)}</span>
-            </div>
-          </div>
-          <div className="card w-96 bg-base-100 shadow-md">
-            <div className="card-body">
-              <h2 className="card-title"> LINK DATA ARRAY </h2>
-              <span>{JSON.stringify(this.props.store.linkDataArray)}</span>
-            </div>
-          </div> */}
-
           <DiagramWrapper
             nodeDataArray={this.state.nodeDataArray}
             linkDataArray={this.state.linkDataArray}
@@ -342,9 +337,7 @@ class Board extends React.Component<DiagramProps, BoardState> {
             ></input>
             <button type="submit">Select Node</button>
           </form> */}
-          {Object.keys(selectedData).length > 0 && (
-            <div className="modal-box">{inspector}</div>
-          )}
+          {this.keySelected > 0 && <div className="modal-box">{inspector}</div>}
         </div>
       </div>
     );

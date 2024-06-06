@@ -19,7 +19,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
   {
     const propertyTypes = ['varchar', 'int', 'boolean', 'date', 'float']; //TODO: move to a constant file
     const level = ['1', '0..N']; //TODO: move to a constant file
-    const [data, setData] = useState(props.selectedData || {});
+    const [data, setData] = useState(props.selectedData);
     const [linkData, setLinkData] = useState<LinkData[]>([]);
     const [links, setLinks] = useState<ObjectData[]>([]);
     const [nodeName, setNodeName] = useState<any[]>([]);
@@ -137,15 +137,32 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
       });
       setLinks([...filteredLinks, ...linkData]);
       props.onInspectorChange(data, linkData);
-      setData({});
-      setLinkData([]);
-      setNodeName([]);
+      setData({
+        key: -1,
+      });
+      setLinkData([
+        {
+          key: -1,
+          from: -1,
+          to: -1,
+          text: '1',
+          toText: '1',
+        },
+      ]);
+      setNodeName([
+        {
+          key: -1,
+          name: '',
+        },
+      ]);
     };
 
     useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === 'Escape') {
-          setData({}); // Limpiar data si se presiona Escape
+          setData({
+            key: -1,
+          });
         }
       };
       let links: any[] = [];
@@ -167,7 +184,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
       };
-    }, [data.key, store.linkDataArray, store.nodeDataArray, linkData]);
+    }, [data.key]);
 
     const handleAddLink = () => {
       let link = linkData;
@@ -191,7 +208,6 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
           <input
             type="text"
             name="name"
-            value={data.name}
             defaultValue={data.name}
             onChange={handleChange}
           />
@@ -217,7 +233,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
                     id="items-isKey"
                     type="checkbox"
                     name={`${index}`}
-                    checked={item.isKey}
+                    defaultChecked={item.isKey}
                     onChange={handleChange}
                   />
                 </label>
@@ -226,7 +242,6 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
                   <select
                     id="items-type"
                     name={`${index}`}
-                    value={item.type}
                     defaultValue={item.type}
                     onChange={handleChange}
                   >
@@ -270,7 +285,6 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
                   <select
                     name={`${link.key}`}
                     id="from-node"
-                    value={link.from}
                     defaultValue={link.from}
                     onChange={handleLinkChange}
                   >
@@ -286,7 +300,6 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
                   <select
                     id="from-level"
                     name={`${link.key}`}
-                    value={link.text}
                     defaultValue={link.text}
                     onChange={handleLinkChange}
                   >
@@ -302,7 +315,6 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
                   <select
                     name={`${link.key}`}
                     id="to-node"
-                    value={link.to}
                     defaultValue={link.to}
                     onChange={handleLinkChange}
                   >
@@ -318,7 +330,6 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
                   <select
                     id="to-level"
                     name={`${link.key}`}
-                    value={link.toText}
                     defaultValue={link.toText}
                     onChange={handleLinkChange}
                   >
