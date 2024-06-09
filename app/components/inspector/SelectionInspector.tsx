@@ -17,14 +17,53 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
   props: SelectionInspectorProps
 ) => {
   {
-    const propertyTypes = ['varchar', 'int', 'boolean', 'date', 'float']; //TODO: move to a constant file
-    const level = ['1', '0..N']; //TODO: move to a constant file
+    const propertyTypes = ['varchar', 'int', 'boolean', 'date', 'float'];
+    const level = ['1', '0..N'];
     const [data, setData] = useState(props.selectedData);
     const [linkData, setLinkData] = useState<LinkData[]>([]);
     const [links, setLinks] = useState<ObjectData[]>([]);
     const [nodeName, setNodeName] = useState<any[]>([]);
     const store = useDiagramStore((state) => state);
 
+    useEffect(() => {
+      const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+          setData({
+            key: -1,
+          });
+        }
+      };
+      if (props.selectedData.key !== data.key) {
+        setData(props.selectedData);
+      }
+      //obtener los links que estan relacionados con el nodo seleccionado
+      let links: any[] = [];
+      setLinks(store.linkDataArray);
+      store.linkDataArray.map((link) => {
+        if (link.from === data.key || link.to === data.key) {
+          links.push(link);
+        }
+      });
+      //obtener los nombres de los nodos para mostrar en el select
+      let names: any[] = [];
+      store.nodeDataArray.map((node) => {
+        names.push({ key: node.key, name: node.name });
+      });
+
+      setLinkData(links);
+      setNodeName(names);
+      window.addEventListener('keydown', handleKeyDown);
+
+      // Limpiar el event listener cuando el componente se desmonte
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }, [
+      data.key,
+      props.selectedData,
+      store.linkDataArray,
+      store.nodeDataArray,
+    ]);
     const handleChange = (
       event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     ) => {
@@ -157,35 +196,6 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
       ]);
     };
 
-    useEffect(() => {
-      const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key === 'Escape') {
-          setData({
-            key: -1,
-          });
-        }
-      };
-      let links: any[] = [];
-      setLinks(store.linkDataArray);
-      store.linkDataArray.map((link) => {
-        if (link.from === data.key || link.to === data.key) {
-          links.push(link);
-        }
-      });
-      let names: any[] = [];
-      store.nodeDataArray.map((node) => {
-        names.push({ key: node.key, name: node.name });
-      });
-      setLinkData(links);
-      setNodeName(names);
-      window.addEventListener('keydown', handleKeyDown);
-
-      // Limpiar el event listener cuando el componente se desmonte
-      return () => {
-        window.removeEventListener('keydown', handleKeyDown);
-      };
-    }, [data.key]);
-
     const handleAddLink = () => {
       let link = linkData;
       link.push({
@@ -213,139 +223,152 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
           />
         </label>
         <label>
-          Items:
-          {data.items &&
-            data.items.map((item: any, index: number) => (
-              <div key={index}>
-                <label>
-                  Name:
-                  <input
-                    id="items-name"
-                    type="text"
-                    name={`${index}`}
-                    defaultValue={item.name}
-                    onChange={handleChange}
-                  />
-                </label>
-                <label>
-                  Is Key:
-                  <input
-                    id="items-isKey"
-                    type="checkbox"
-                    name={`${index}`}
-                    defaultChecked={item.isKey}
-                    onChange={handleChange}
-                  />
-                </label>
-                <label>
-                  Type:
-                  <select
-                    id="items-type"
-                    name={`${index}`}
-                    defaultValue={item.type}
-                    onChange={handleChange}
-                  >
-                    {propertyTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <br />
-              </div>
-            ))}
-          <button
-            onClick={() => {
-              setData({
-                ...data,
-                items: [
-                  ...data.items,
-                  {
-                    name: '',
-                    isKey: false,
-                    type: '',
-                  },
-                ],
-              });
-            }}
-            type="button"
-          >
-            Add item
-          </button>
+          <details className="collapse bg-base-200">
+            <summary className="collapse-title text-xl font-medium">
+              Items:
+            </summary>
+            <div className="collapse-content">
+              {data.items &&
+                data.items.map((item: any, index: number) => (
+                  <div key={index}>
+                    <label>
+                      Name:
+                      <input
+                        id="items-name"
+                        type="text"
+                        name={`${index}`}
+                        defaultValue={item.name}
+                        onChange={handleChange}
+                      />
+                    </label>
+                    <label>
+                      Is Key:
+                      <input
+                        id="items-isKey"
+                        type="checkbox"
+                        name={`${index}`}
+                        defaultChecked={item.isKey}
+                        onChange={handleChange}
+                      />
+                    </label>
+                    <label>
+                      Type:
+                      <select
+                        id="items-type"
+                        name={`${index}`}
+                        defaultValue={item.type}
+                        onChange={handleChange}
+                      >
+                        {propertyTypes.map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <br />
+                  </div>
+                ))}
+              <button
+                onClick={() => {
+                  setData({
+                    ...data,
+                    items: [
+                      ...data.items,
+                      {
+                        name: '',
+                        isKey: false,
+                        type: '',
+                      },
+                    ],
+                  });
+                }}
+                type="button"
+              >
+                Add item
+              </button>
+            </div>
+          </details>
         </label>
 
         <label>
-          Relaciones:
-          {linkData &&
-            linkData.map((link: LinkData, index: number) => (
-              <div key={index}>
-                <label>
-                  From:
-                  <select
-                    name={`${link.key}`}
-                    id="from-node"
-                    defaultValue={link.from}
-                    onChange={handleLinkChange}
-                  >
-                    {nodeName.map((node) => (
-                      <option key={node.key} value={node.key}>
-                        {node.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  From level:
-                  <select
-                    id="from-level"
-                    name={`${link.key}`}
-                    defaultValue={link.text}
-                    onChange={handleLinkChange}
-                  >
-                    {level.map((level) => (
-                      <option key={level} value={level}>
-                        {level}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  To:
-                  <select
-                    name={`${link.key}`}
-                    id="to-node"
-                    defaultValue={link.to}
-                    onChange={handleLinkChange}
-                  >
-                    {nodeName.map((node) => (
-                      <option key={node.key} value={node.key}>
-                        {node.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  To level:
-                  <select
-                    id="to-level"
-                    name={`${link.key}`}
-                    defaultValue={link.toText}
-                    onChange={handleLinkChange}
-                  >
-                    {level.map((level) => (
-                      <option key={level} value={level}>
-                        {level}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <br />
-              </div>
-            ))}
-          <button onClick={handleAddLink} type="button">
-            Add link
-          </button>
+          <div className="collapse bg-base-200">
+            <input type="checkbox" />
+            <div className="collapse-title text-xl font-medium">
+              Relaciones:
+            </div>
+            <div className="collapse-content">
+              {linkData &&
+                linkData.map((link: LinkData, index: number) => (
+                  <div key={index}>
+                    <label>
+                      From:
+                      <select
+                        name={`${link.key}`}
+                        id="from-node"
+                        defaultValue={link.from}
+                        onChange={handleLinkChange}
+                      >
+                        {nodeName.map((node) => (
+                          <option key={node.key} value={node.key}>
+                            {node.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      From level:
+                      <select
+                        id="from-level"
+                        name={`${link.key}`}
+                        defaultValue={link.text}
+                        onChange={handleLinkChange}
+                      >
+                        {level.map((level) => (
+                          <option key={level} value={level}>
+                            {level}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      To:
+                      <select
+                        name={`${link.key}`}
+                        id="to-node"
+                        defaultValue={link.to}
+                        onChange={handleLinkChange}
+                      >
+                        {nodeName.map((node) => (
+                          <option key={node.key} value={node.key}>
+                            {node.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      To level:
+                      <select
+                        id="to-level"
+                        name={`${link.key}`}
+                        defaultValue={link.toText}
+                        onChange={handleLinkChange}
+                      >
+                        {level.map((level) => (
+                          <option key={level} value={level}>
+                            {level}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <br />
+                  </div>
+                ))}
+              <button onClick={handleAddLink} type="button">
+                Add link
+              </button>
+            </div>
+          </div>
         </label>
         <button className="btn-secundary" type="submit">
           Submit
