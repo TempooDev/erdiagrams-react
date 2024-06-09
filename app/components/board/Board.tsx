@@ -81,6 +81,7 @@ class Board extends React.Component<DiagramProps, BoardState> {
                 if (idx !== undefined && idx >= 0) {
                   const ld = draft.linkDataArray[idx];
                   draft.selectedData = ld;
+                  this.keySelected = ld.key;
                 }
               }
             } else {
@@ -327,16 +328,6 @@ class Board extends React.Component<DiagramProps, BoardState> {
           />
         </div>
         <div className="basis-1/2 items-center">
-          {/* <form className="" onSubmit={this.handleSelectNode}>
-            <input
-              placeholder="ID Nodo"
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                this.props.store.removeSelectedData();
-                this.keySelected = parseInt(e.target.value);
-              }}
-            ></input>
-            <button type="submit">Select Node</button>
-          </form> */}
           {this.keySelected > 0 && <div className="modal-box">{inspector}</div>}
         </div>
       </div>
