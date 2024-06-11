@@ -1,7 +1,5 @@
 'use client';
 import Board from '@/app/components/board/Board';
-import diagrams from '@/app/mocks/diagrams';
-import { useDiagramStore } from '@/app/providers/diagram-store-provider';
 
 interface HomeProps {
   params: {
@@ -10,7 +8,5 @@ interface HomeProps {
 }
 //todo fix infinity loop on load
 export default function Home({ params }: HomeProps) {
-  const store = useDiagramStore((state) => state);
-
-  return <Board store={store} id={params.id}></Board>;
+  return <Board id={params.id}></Board>;
 }

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 'use client';
 import * as go from 'gojs';
 import { produce } from 'immer';
@@ -7,21 +8,20 @@ import { DiagramWrapper } from '../diagram/DiagramWrapper';
 
 import './Board.css';
 
-import { KeyService } from '@/app/utils/KeyServices';
-import { DiagramStore } from '@/app/store';
 import SelectionInspector from '../inspector/SelectionInspector';
-import { LinkData } from '@/app/store/diagram/types';
-import diagrams from '@/app/mocks/diagrams';
+import { LinkData, NodeData } from '@/app/store/diagram/types';
+
+import { useRouter } from 'next/router';
 
 interface BoardState {
   selectedData: go.ObjectData | null;
-  nodeDataArray: go.ObjectData[];
-  linkDataArray: go.ObjectData[];
-  modelData: go.ObjectData;
-  skipsDiagramUpdate: boolean;
+  nodeDataArray: go.ObjectData[] | null;
+  linkDataArray: go.ObjectData[] | null;
+  modelData: go.ObjectData | null;
+  skipsDiagramUpdate: boolean | null;
 }
 
-type DiagramProps = { store: DiagramStore; id?: string };
+type DiagramProps = { id?: string };
 
 class Board extends React.Component<DiagramProps, BoardState> {
   private mapNodeKeyIdx: Map<go.Key, number>;
@@ -30,30 +30,41 @@ class Board extends React.Component<DiagramProps, BoardState> {
 
   constructor(props: any) {
     super(props);
-
-    if (this.props.id) {
-      const diagram = getDiagram(this.props.id);
-      this.props.store.setNodeDataArray(diagram!.nodeDataArray);
-      this.props.store.setLinkDataArray(diagram!.linkDataArray);
-    }
-    this.state = {
-      selectedData: this.props.store.selectedData,
-      nodeDataArray: this.props.store.nodeDataArray,
-      linkDataArray: this.props.store.linkDataArray,
-      modelData: this.props.store.modelData,
-      skipsDiagramUpdate: this.props.store.skipsDiagramUpdate,
-    };
-    // init maps
     this.mapNodeKeyIdx = new Map<go.Key, number>();
     this.mapLinkKeyIdx = new Map<go.Key, number>();
-    this.refreshNodeIndex(this.state.nodeDataArray);
-    this.refreshLinkIndex(this.state.linkDataArray);
-    // bind handler methods
-    this.handleDiagramEvent = this.handleDiagramEvent.bind(this); //event diagram change
-    this.handleModelChange = this.handleModelChange.bind(this); //event model change
-    this.handleInputChange = this.handleInputChange.bind(this); //event input change
+    this.setState({
+      selectedData: null,
+      nodeDataArray: null,
+      linkDataArray: null,
+      modelData: null,
+      skipsDiagramUpdate: null,
+    });
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const fetchData = async () => {
+      let id = useRouter().query.id;
+      if (this.props.id || id) {
+        id = this.props.id ?? id;
+        const diagram = await getDiagram(id);
+        this.setState({
+          selectedData: null,
+          nodeDataArray: diagram!.nodeDataArray,
+          linkDataArray: diagram!.linkDataArray,
+          modelData: { canRelink: true },
+          skipsDiagramUpdate: true,
+        });
+      }
 
-    this.props.store.modifyModel({ canRelink: true });
+      // init maps
+
+      this.refreshNodeIndex(this.state.nodeDataArray!);
+      this.refreshLinkIndex(this.state.linkDataArray!);
+      // bind handler methods
+      this.handleDiagramEvent = this.handleDiagramEvent.bind(this); //event diagram change
+      this.handleModelChange = this.handleModelChange.bind(this); //event model change
+      this.handleInputChange = this.handleInputChange.bind(this); //event input change
+    };
+
+    fetchData();
   }
 
   /**
@@ -72,14 +83,14 @@ class Board extends React.Component<DiagramProps, BoardState> {
               if (sel instanceof go.Node) {
                 const idx = this.mapNodeKeyIdx.get(sel.key);
                 if (idx !== undefined && idx >= 0) {
-                  const nd = draft.nodeDataArray[idx];
+                  const nd = draft.nodeDataArray![idx];
                   draft.selectedData = nd;
                   this.keySelected = nd.key;
                 }
               } else if (sel instanceof go.Link) {
                 const idx = this.mapLinkKeyIdx.get(sel.key);
                 if (idx !== undefined && idx >= 0) {
-                  const ld = draft.linkDataArray[idx];
+                  const ld = draft.linkDataArray![idx];
                   draft.selectedData = ld;
                   this.keySelected = ld.key;
                 }
@@ -116,8 +127,7 @@ class Board extends React.Component<DiagramProps, BoardState> {
 
     this.setState(
       produce((draft: BoardState) => {
-        let narr = draft.nodeDataArray;
-        narr ?? this.props.store.setNodeDataArray(narr);
+        let narr = draft.nodeDataArray!;
         if (modifiedNodeData) {
           modifiedNodeData.forEach((nd: go.ObjectData) => {
             modifiedNodeMap.set(nd.key, nd);
@@ -152,8 +162,7 @@ class Board extends React.Component<DiagramProps, BoardState> {
           this.refreshNodeIndex(narr);
         }
 
-        let larr = draft.linkDataArray;
-        larr ?? this.props.store.setLinkDataArray(larr);
+        let larr = draft.linkDataArray!;
         if (modifiedLinkData) {
           modifiedLinkData.forEach((ld: go.ObjectData) => {
             modifiedLinkMap.set(ld.key, ld);
@@ -190,10 +199,8 @@ class Board extends React.Component<DiagramProps, BoardState> {
         // handle model data changes, for now just replacing with the supplied object
         if (modifiedModelData) {
           draft.modelData = modifiedModelData;
-          this.props.store.modifyModel(draft.modelData);
         }
         draft.skipsDiagramUpdate = true; // the GoJS model already knows about these updates
-        this.props.store.setSkips(true);
       })
     );
     console.log(JSON.stringify(this.state.nodeDataArray));
@@ -216,13 +223,13 @@ class Board extends React.Component<DiagramProps, BoardState> {
             // negative keys are links
             const idx = this.mapLinkKeyIdx.get(key);
             if (idx !== undefined && idx >= 0) {
-              draft.linkDataArray[idx] = data;
+              draft.linkDataArray![idx] = data;
               draft.skipsDiagramUpdate = false;
             }
           } else {
             const idx = this.mapNodeKeyIdx.get(key);
             if (idx !== undefined && idx >= 0) {
-              draft.nodeDataArray[idx] = data;
+              draft.nodeDataArray![idx] = data;
               draft.skipsDiagramUpdate = false;
             }
           }
@@ -274,22 +281,12 @@ class Board extends React.Component<DiagramProps, BoardState> {
    */
   public handleAddNode() {
     //todo:adaptar a la nueva estructura
-    this.props.store.insertNode({
-      key: KeyService.generate(),
-      text: 'new node',
-      color: 'lime',
-    });
-    this.props.store.setSkips(false);
   }
 
   public handleInspectorChange = (
     newData: go.ObjectData,
     links: LinkData[]
   ) => {
-    this.props.store.setLinkDataArray(links);
-    this.props.store.modifyNode(newData.key, newData);
-    this.props.store.setSelectedData({});
-
     // Crear un objeto IncrementalData que describe los cambios
     const obj: go.IncrementalData = {
       modifiedNodeData: [newData], // Supongamos que estás modificando un nodo
@@ -303,11 +300,13 @@ class Board extends React.Component<DiagramProps, BoardState> {
   };
 
   public render() {
-    const selectedData: go.ObjectData = this.state.selectedData!;
+    let selectedData: go.ObjectData | null = this.state.selectedData;
     let inspector;
-    if (this.keySelected > 0) {
+    if (selectedData && this.keySelected > 0) {
       inspector = (
         <SelectionInspector
+          links={this.state.linkDataArray! as LinkData[]}
+          nodeDataArray={this.state.nodeDataArray! as NodeData[]}
           selectedData={selectedData}
           onInspectorChange={this.handleInspectorChange}
         />
@@ -319,10 +318,10 @@ class Board extends React.Component<DiagramProps, BoardState> {
       <div className="flex flex-row">
         <div className="basis-1/2">
           <DiagramWrapper
-            nodeDataArray={this.state.nodeDataArray}
-            linkDataArray={this.state.linkDataArray}
-            modelData={this.state.modelData}
-            skipsDiagramUpdate={this.state.skipsDiagramUpdate}
+            nodeDataArray={this.state.nodeDataArray!}
+            linkDataArray={this.state.linkDataArray!}
+            modelData={this.state.modelData!}
+            skipsDiagramUpdate={this.state.skipsDiagramUpdate!}
             onDiagramEvent={this.handleDiagramEvent}
             onModelChange={this.handleModelChange}
           />
@@ -336,20 +335,33 @@ class Board extends React.Component<DiagramProps, BoardState> {
 
   handleSelectNode = (event: React.FormEvent) => {
     event.preventDefault();
-    const node = this.props.store.nodeDataArray.find(
+    const node = this.state.nodeDataArray!.find(
       (x) => x.key === this.keySelected
     );
     if (node) {
-      this.props.store.setSelectedData(node);
+      this.setState({ selectedData: node });
     }
   };
 }
 
-function getDiagram(id: any) {
-  let diagram = diagrams.find((diagram) => diagram.id === id);
+const getDiagram = async (id: any) => {
+  let diagram;
+  try {
+    const response = await fetch(
+      'https://api-erdiagrams.azurewebsites.net/api/diagrams/' + id
+    );
+    if (response.ok) {
+      const json = await response.json();
+      diagram = JSON.parse(json.diagram);
+    } else {
+      console.error('Failed to fetch data');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
 
   return __mapLocation(diagram);
-}
+};
 
 function __mapLocation(diagram: any) {
   if (diagram) {

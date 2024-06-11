@@ -9,7 +9,8 @@ import { ObjectData } from 'gojs';
 
 interface SelectionInspectorProps {
   selectedData: go.ObjectData;
-
+  links: LinkData[];
+  nodeDataArray: NodeData[];
   onInspectorChange: (data: go.ObjectData, links: LinkData[]) => void;
 }
 
@@ -23,7 +24,6 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
     const [linkData, setLinkData] = useState<LinkData[]>([]);
     const [links, setLinks] = useState<ObjectData[]>([]);
     const [nodeName, setNodeName] = useState<any[]>([]);
-    const store = useDiagramStore((state) => state);
 
     useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
@@ -38,15 +38,15 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
       }
       //obtener los links que estan relacionados con el nodo seleccionado
       let links: any[] = [];
-      setLinks(store.linkDataArray);
-      store.linkDataArray.map((link) => {
+      setLinks(props.links);
+      props.links.map((link) => {
         if (link.from === data.key || link.to === data.key) {
           links.push(link);
         }
       });
       //obtener los nombres de los nodos para mostrar en el select
       let names: any[] = [];
-      store.nodeDataArray.map((node) => {
+      props.nodeDataArray.map((node) => {
         names.push({ key: node.key, name: node.name });
       });
 
@@ -58,12 +58,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
       };
-    }, [
-      data.key,
-      props.selectedData,
-      store.linkDataArray,
-      store.nodeDataArray,
-    ]);
+    }, [data.key, props.links, props.nodeDataArray, props.selectedData]);
     const handleChange = (
       event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     ) => {
