@@ -15,10 +15,10 @@ import { useRouter } from 'next/router';
 
 interface BoardState {
   selectedData: go.ObjectData | null;
-  nodeDataArray: go.ObjectData[] | null;
-  linkDataArray: go.ObjectData[] | null;
-  modelData: go.ObjectData | null;
-  skipsDiagramUpdate: boolean | null;
+  nodeDataArray: go.ObjectData[];
+  linkDataArray: go.ObjectData[];
+  modelData: go.ObjectData;
+  skipsDiagramUpdate: boolean;
 }
 
 type DiagramProps = { id?: string };
@@ -32,13 +32,7 @@ class Board extends React.Component<DiagramProps, BoardState> {
     super(props);
     this.mapNodeKeyIdx = new Map<go.Key, number>();
     this.mapLinkKeyIdx = new Map<go.Key, number>();
-    this.setState({
-      selectedData: null,
-      nodeDataArray: null,
-      linkDataArray: null,
-      modelData: null,
-      skipsDiagramUpdate: null,
-    });
+
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const fetchData = async () => {
       let id = useRouter().query.id;
@@ -300,19 +294,17 @@ class Board extends React.Component<DiagramProps, BoardState> {
   };
 
   public render() {
-    let selectedData: go.ObjectData | null = this.state.selectedData;
     let inspector;
-    if (selectedData && this.keySelected > 0) {
+    if (this.keySelected > 0) {
       inspector = (
         <SelectionInspector
           links={this.state.linkDataArray! as LinkData[]}
           nodeDataArray={this.state.nodeDataArray! as NodeData[]}
-          selectedData={selectedData}
+          selectedData={this.state.selectedData!}
           onInspectorChange={this.handleInspectorChange}
         />
       );
     }
-    console.log(JSON.stringify(this.state.nodeDataArray));
 
     return (
       <div className="flex flex-row">
