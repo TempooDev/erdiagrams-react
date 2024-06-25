@@ -39,7 +39,7 @@ export default function DiagramList() {
                 {diagram.userId}
               </p>
               <Link
-                href={`/board/${diagram.id}`}
+                href={`/board/${diagram.diagramId}`}
                 className="card-actions justify-end"
               >
                 <button className="btn btn-primary">Abrir</button>

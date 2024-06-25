@@ -9,7 +9,7 @@ import { DiagramWrapper } from '../diagram/DiagramWrapper';
 import './Board.css';
 
 import SelectionInspector from '../inspector/SelectionInspector';
-import { LinkData, NodeData } from '@/app/store/diagram/types';
+import { Diagram, LinkData, NodeData } from '@/app/store/diagram/types';
 
 import { useRouter } from 'next/router';
 
@@ -21,7 +21,7 @@ interface BoardState {
   skipsDiagramUpdate: boolean;
 }
 
-type DiagramProps = { id?: string };
+type DiagramProps = { diagram?: Diagram };
 
 class Board extends React.Component<DiagramProps, BoardState> {
   private mapNodeKeyIdx: Map<go.Key, number>;
@@ -33,20 +33,14 @@ class Board extends React.Component<DiagramProps, BoardState> {
     this.mapNodeKeyIdx = new Map<go.Key, number>();
     this.mapLinkKeyIdx = new Map<go.Key, number>();
 
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const fetchData = async () => {
-      let id = useRouter().query.id;
-      if (this.props.id || id) {
-        id = this.props.id ?? id;
-        const diagram = await getDiagram(id);
-        this.setState({
-          selectedData: null,
-          nodeDataArray: diagram!.nodeDataArray,
-          linkDataArray: diagram!.linkDataArray,
-          modelData: { canRelink: true },
-          skipsDiagramUpdate: true,
-        });
-      }
+    if (this.props.diagram) {
+      this.setState({
+        selectedData: null,
+        nodeDataArray: this.props.diagram!.nodeDataArray,
+        linkDataArray: this.props.diagram!.linkDataArray,
+        modelData: { canRelink: true },
+        skipsDiagramUpdate: true,
+      });
 
       // init maps
 
@@ -56,9 +50,7 @@ class Board extends React.Component<DiagramProps, BoardState> {
       this.handleDiagramEvent = this.handleDiagramEvent.bind(this); //event diagram change
       this.handleModelChange = this.handleModelChange.bind(this); //event model change
       this.handleInputChange = this.handleInputChange.bind(this); //event input change
-    };
-
-    fetchData();
+    }
   }
 
   /**
@@ -336,31 +328,4 @@ class Board extends React.Component<DiagramProps, BoardState> {
   };
 }
 
-const getDiagram = async (id: any) => {
-  let diagram;
-  try {
-    const response = await fetch(
-      'https://api-erdiagrams.azurewebsites.net/api/diagrams/' + id
-    );
-    if (response.ok) {
-      const json = await response.json();
-      diagram = JSON.parse(json.diagram);
-    } else {
-      console.error('Failed to fetch data');
-    }
-  } catch (error) {
-    console.error('Error:', error);
-  }
-
-  return __mapLocation(diagram);
-};
-
-function __mapLocation(diagram: any) {
-  if (diagram) {
-    diagram.nodeDataArray.forEach((node: any) => {
-      node.location = new go.Point(node.location.x, node.location.y);
-    });
-  }
-  return diagram;
-}
 export default Board;
