@@ -3,7 +3,7 @@ import { Diagram } from "../store/diagram/types";
 //añadir implementacion de Item donde sea necesario
 const diagrams: Diagram[] = [
     {
-        id: "123",
+        diagramId: "123",
         userId: "456",
         name: "Diagrama1",
         image: "/diagram1.png",
@@ -225,7 +225,7 @@ const diagrams: Diagram[] = [
         ]
     },
     {
-        id: "124",
+        diagramId: "124",
         userId: "456",
         name: "Diagrama2",
         image: "/diagram1.png",

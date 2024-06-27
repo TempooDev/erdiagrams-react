@@ -1,6 +1,6 @@
 'use client';
 import { useUser } from '@auth0/nextjs-auth0/client';
-
+import Image from 'next/image';
 export default function UserTabMenu() {
   const { user, error, isLoading } = useUser();
 
@@ -16,7 +16,7 @@ export default function UserTabMenu() {
           className="btn btn-ghost btn-circle avatar"
         >
           <div className="w-10 rounded-full">
-            <img src={user.picture ?? ''} alt={user.name ?? ''} />
+            <Image src={user.picture ?? ''} alt={user.name ?? ''} />
           </div>
         </div>
         <ul
