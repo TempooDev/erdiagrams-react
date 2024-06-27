@@ -21,7 +21,7 @@ export default function Home({ params }: HomeProps) {
         setLoading(false);
       });
     console.log(diagram);
-  }, [params.id]);
+  }, [diagram, params.id]);
   return (
     <>
       {isLoading && <>Loading....</>}
