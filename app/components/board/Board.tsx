@@ -36,22 +36,30 @@ const Board = ({ diagram }: DiagramProps) => {
   const [skipsDiagramUpdate, setSkipsDiagramUpdate] = useState<boolean>(true);
   const [keySelected, setKeySelected] = useState<number>(-1);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const mapNodeKeyIdx = new Map<go.Key, number>();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const mapLinkKeyIdx = new Map<go.Key, number>();
 
-  const refreshNodeIndex = useCallback((nodeArr: Array<go.ObjectData>) => {
-    mapNodeKeyIdx.clear();
-    nodeArr.forEach((n, idx) => {
-      mapNodeKeyIdx.set(n.key, idx);
-    });
-  }, []);
+  const refreshNodeIndex = useCallback(
+    (nodeArr: Array<go.ObjectData>) => {
+      mapNodeKeyIdx.clear();
+      nodeArr.forEach((n, idx) => {
+        mapNodeKeyIdx.set(n.key, idx);
+      });
+    },
+    [mapNodeKeyIdx]
+  );
 
-  const refreshLinkIndex = useCallback((linkArr: Array<go.ObjectData>) => {
-    mapLinkKeyIdx.clear();
-    linkArr.forEach((l, idx) => {
-      mapLinkKeyIdx.set(l.key, idx);
-    });
-  }, []);
+  const refreshLinkIndex = useCallback(
+    (linkArr: Array<go.ObjectData>) => {
+      mapLinkKeyIdx.clear();
+      linkArr.forEach((l, idx) => {
+        mapLinkKeyIdx.set(l.key, idx);
+      });
+    },
+    [mapLinkKeyIdx]
+  );
 
   useEffect(() => {
     if (diagram) {
@@ -88,99 +96,102 @@ const Board = ({ diagram }: DiagramProps) => {
         }
       }
     },
-    [nodeDataArray, linkDataArray]
+    [mapNodeKeyIdx, nodeDataArray, mapLinkKeyIdx, linkDataArray]
   );
 
-  const handleModelChange = useCallback((obj: go.IncrementalData) => {
-    const insertedNodeKeys = obj.insertedNodeKeys;
-    const modifiedNodeData = obj.modifiedNodeData;
-    const removedNodeKeys = obj.removedNodeKeys;
-    const insertedLinkKeys = obj.insertedLinkKeys;
-    const modifiedLinkData = obj.modifiedLinkData;
-    const removedLinkKeys = obj.removedLinkKeys;
-    const modifiedModelData = obj.modelData;
+  const handleModelChange = useCallback(
+    (obj: go.IncrementalData) => {
+      const insertedNodeKeys = obj.insertedNodeKeys;
+      const modifiedNodeData = obj.modifiedNodeData;
+      const removedNodeKeys = obj.removedNodeKeys;
+      const insertedLinkKeys = obj.insertedLinkKeys;
+      const modifiedLinkData = obj.modifiedLinkData;
+      const removedLinkKeys = obj.removedLinkKeys;
+      const modifiedModelData = obj.modelData;
 
-    // maintain maps of modified data so insertions don't need slow lookups
-    const modifiedNodeMap = new Map<go.Key, go.ObjectData>();
-    const modifiedLinkMap = new Map<go.Key, go.ObjectData>();
+      // maintain maps of modified data so insertions don't need slow lookups
+      const modifiedNodeMap = new Map<go.Key, go.ObjectData>();
+      const modifiedLinkMap = new Map<go.Key, go.ObjectData>();
 
-    produce((draft: BoardState) => {
-      let narr = draft.nodeDataArray!;
-      if (modifiedNodeData) {
-        modifiedNodeData.forEach((nd: go.ObjectData) => {
-          modifiedNodeMap.set(nd.key, nd);
-          const idx = mapNodeKeyIdx.get(nd.key);
-          if (idx !== undefined && idx >= 0) {
-            narr[idx] = nd;
-            if (draft.selectedData && draft.selectedData.key === nd.key) {
-              draft.selectedData = nd;
+      produce((draft: BoardState) => {
+        let narr = draft.nodeDataArray!;
+        if (modifiedNodeData) {
+          modifiedNodeData.forEach((nd: go.ObjectData) => {
+            modifiedNodeMap.set(nd.key, nd);
+            const idx = mapNodeKeyIdx.get(nd.key);
+            if (idx !== undefined && idx >= 0) {
+              narr[idx] = nd;
+              if (draft.selectedData && draft.selectedData.key === nd.key) {
+                draft.selectedData = nd;
+              }
             }
-          }
-        });
-      }
-      if (insertedNodeKeys) {
-        insertedNodeKeys.forEach((key: go.Key) => {
-          const nd = modifiedNodeMap.get(key);
-          const idx = mapNodeKeyIdx.get(key);
-          if (nd && idx === undefined) {
-            // nodes won't be added if they already exist
-            mapNodeKeyIdx.set(nd.key, narr.length);
-            narr.push(nd);
-          }
-        });
-      }
-      if (removedNodeKeys) {
-        narr = narr.filter((nd: go.ObjectData) => {
-          if (removedNodeKeys.includes(nd.key)) {
-            return false;
-          }
-          return true;
-        });
-        draft.nodeDataArray = narr;
-        refreshNodeIndex(narr);
-      }
-
-      let larr = draft.linkDataArray!;
-      if (modifiedLinkData) {
-        modifiedLinkData.forEach((ld: go.ObjectData) => {
-          modifiedLinkMap.set(ld.key, ld);
-          const idx = mapLinkKeyIdx.get(ld.key);
-          if (idx !== undefined && idx >= 0) {
-            larr[idx] = ld;
-            if (draft.selectedData && draft.selectedData.key === ld.key) {
-              draft.selectedData = ld;
+          });
+        }
+        if (insertedNodeKeys) {
+          insertedNodeKeys.forEach((key: go.Key) => {
+            const nd = modifiedNodeMap.get(key);
+            const idx = mapNodeKeyIdx.get(key);
+            if (nd && idx === undefined) {
+              // nodes won't be added if they already exist
+              mapNodeKeyIdx.set(nd.key, narr.length);
+              narr.push(nd);
             }
-          }
-        });
-      }
-      if (insertedLinkKeys) {
-        insertedLinkKeys.forEach((key: go.Key) => {
-          const ld = modifiedLinkMap.get(key);
-          const idx = mapLinkKeyIdx.get(key);
-          if (ld && idx === undefined) {
-            // links won't be added if they already exist
-            mapLinkKeyIdx.set(ld.key, larr.length);
-            larr.push(ld);
-          }
-        });
-      }
-      if (removedLinkKeys) {
-        larr = larr.filter((ld: go.ObjectData) => {
-          if (removedLinkKeys.includes(ld.key)) {
-            return false;
-          }
-          return true;
-        });
-        draft.linkDataArray = larr;
-        refreshLinkIndex(larr);
-      }
-      // handle model data changes, for now just replacing with the supplied object
-      if (modifiedModelData) {
-        draft.modelData = modifiedModelData;
-      }
-      draft.skipsDiagramUpdate = true; // the GoJS model already knows about these updates
-    });
-  }, []);
+          });
+        }
+        if (removedNodeKeys) {
+          narr = narr.filter((nd: go.ObjectData) => {
+            if (removedNodeKeys.includes(nd.key)) {
+              return false;
+            }
+            return true;
+          });
+          draft.nodeDataArray = narr;
+          refreshNodeIndex(narr);
+        }
+
+        let larr = draft.linkDataArray!;
+        if (modifiedLinkData) {
+          modifiedLinkData.forEach((ld: go.ObjectData) => {
+            modifiedLinkMap.set(ld.key, ld);
+            const idx = mapLinkKeyIdx.get(ld.key);
+            if (idx !== undefined && idx >= 0) {
+              larr[idx] = ld;
+              if (draft.selectedData && draft.selectedData.key === ld.key) {
+                draft.selectedData = ld;
+              }
+            }
+          });
+        }
+        if (insertedLinkKeys) {
+          insertedLinkKeys.forEach((key: go.Key) => {
+            const ld = modifiedLinkMap.get(key);
+            const idx = mapLinkKeyIdx.get(key);
+            if (ld && idx === undefined) {
+              // links won't be added if they already exist
+              mapLinkKeyIdx.set(ld.key, larr.length);
+              larr.push(ld);
+            }
+          });
+        }
+        if (removedLinkKeys) {
+          larr = larr.filter((ld: go.ObjectData) => {
+            if (removedLinkKeys.includes(ld.key)) {
+              return false;
+            }
+            return true;
+          });
+          draft.linkDataArray = larr;
+          refreshLinkIndex(larr);
+        }
+        // handle model data changes, for now just replacing with the supplied object
+        if (modifiedModelData) {
+          draft.modelData = modifiedModelData;
+        }
+        draft.skipsDiagramUpdate = true; // the GoJS model already knows about these updates
+      });
+    },
+    [mapLinkKeyIdx, mapNodeKeyIdx, refreshLinkIndex, refreshNodeIndex]
+  );
 
   const handleInputChange = useCallback(
     (path: string, value: string, isBlur: boolean) => {
@@ -207,7 +218,8 @@ const Board = ({ diagram }: DiagramProps) => {
       });
 
       setKeySelected(-1);
-    }
+    },
+    [mapLinkKeyIdx, mapNodeKeyIdx]
   );
 
   const handleRelinkChange = useCallback((e: any) => {
@@ -230,7 +242,7 @@ const Board = ({ diagram }: DiagramProps) => {
       // Llamar a handleModelChange para actualizar el diagrama
       handleModelChange(obj);
     },
-    [nodeDataArray]
+    [handleModelChange, nodeDataArray]
   );
 
   let inspector;
