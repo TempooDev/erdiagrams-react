@@ -34,6 +34,7 @@ export default function RootLayout({
               <UserTabMenu />
             </div>
           </div>
+          <DiagramStoreProvider>{children}</DiagramStoreProvider>
         </body>
       </UserProvider>
     </html>
