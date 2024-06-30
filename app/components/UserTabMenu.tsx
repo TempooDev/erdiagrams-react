@@ -16,7 +16,7 @@ export default function UserTabMenu() {
           className="btn btn-ghost btn-circle avatar"
         >
           <div className="w-10 rounded-full">
-            <Image src={user.picture ?? ''} alt={user.name ?? ''} />
+            <img src={user.picture ?? ''} alt={user.name ?? ''}/>
           </div>
         </div>
         <ul
