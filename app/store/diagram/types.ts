@@ -1,7 +1,7 @@
 import { ObjectData } from 'gojs';
 
 export interface Diagram {
-    id: string;
+    diagramId: string;
     userId: string;
     name: string;
     image: string;

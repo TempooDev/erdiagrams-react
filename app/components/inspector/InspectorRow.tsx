@@ -41,7 +41,6 @@ export class InspectorRow extends React.PureComponent<InspectorRowProps, {}> {
         updatedItem.name = value;
       }
       const newItems = [...updatedItems, updatedItem];
-      this.props.store.setModifiedItems(newItems);
     }
   }
 

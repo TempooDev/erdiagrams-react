@@ -1,7 +1,7 @@
 'use client';
 import Board from '@/app/components/board/Board';
-import diagrams from '@/app/mocks/diagrams';
-import { useDiagramStore } from '@/app/providers/diagram-store-provider';
+import { Diagram } from '@/app/store/diagram/types';
+import { useEffect, useState } from 'react';
 
 interface HomeProps {
   params: {
@@ -10,7 +10,22 @@ interface HomeProps {
 }
 //todo fix infinity loop on load
 export default function Home({ params }: HomeProps) {
-  const store = useDiagramStore((state) => state);
+  const [diagram, setDiagram] = useState({} as Diagram);
+  const [isLoading, setLoading] = useState(true);
 
-  return <Board store={store} id={params.id}></Board>;
+  useEffect(() => {
+    fetch('https://api-erdiagrams.azurewebsites.net/diagrams/' + params.id)
+      .then((res) => res.json())
+      .then((data) => {
+        setDiagram(data);
+        setLoading(false);
+      });
+    console.log(diagram);
+  }, [diagram, params.id]);
+  return (
+    <>
+      {isLoading && <>Loading....</>}
+      {!isLoading && <Board diagram={diagram}></Board>}
+    </>
+  );
 }
