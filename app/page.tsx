@@ -1,5 +1,8 @@
+import { cookies } from 'next/headers';
 import DiagramList from './components/diagramList/diagramList';
 
 export default function Home() {
-  return <DiagramList></DiagramList>;
+  const cookieStore = cookies()
+
+  return <DiagramList token={cookieStore.get('appSession')?.value}></DiagramList>;
 }
