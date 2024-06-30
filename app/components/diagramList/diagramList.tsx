@@ -1,31 +1,37 @@
-'use client'
+'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Diagram } from '@/app/store/diagram/types';
-import { useUser} from '@auth0/nextjs-auth0/client';
+import { useUser } from '@auth0/nextjs-auth0/client';
 import { headers } from 'next/headers';
 
 interface ListProps {
- token: string | undefined;
+  token: string ;
 }
-export default  function DiagramList(props: ListProps) {
+export default function DiagramList(props: ListProps) {
   const [data, setData] = useState([] as Diagram[]);
   const [isLoading, setLoading] = useState(true);
   const { user } = useUser();
   let token = null;
   useEffect(() => {
-    const header = new Headers();
-    header.append('Authorization', 'Bearer ' + props.token);
-    fetch('https://api-erdiagrams.azurewebsites.net/diagrams/user/'+user?.nickname, { headers: header })
-    .then((res) => res.json())
-    .then((data) => {
-      setData(data);
-      setLoading(false);
-      
-    });
-    
-  }, [user]);
+    if (props.token ) {
+      token = props.token;
+
+      const header = new Headers();
+      header.append('Authorization', 'Bearer ' + props.token);
+      fetch(
+        'https://api-erdiagrams.azurewebsites.net/diagrams/user/' +
+          user?.nickname,
+        { headers: header }
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          setData(data);
+          setLoading(false);
+        });
+    }
+  }, [user, props.token]);
   return (
     <>
       <h2>{token}</h2>
