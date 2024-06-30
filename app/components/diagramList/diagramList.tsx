@@ -7,7 +7,7 @@ import { useUser } from '@auth0/nextjs-auth0/client';
 import { headers } from 'next/headers';
 
 interface ListProps {
-  token: string ;
+  token: string | undefined ;
 }
 export default function DiagramList(props: ListProps) {
   const [data, setData] = useState([] as Diagram[]);
