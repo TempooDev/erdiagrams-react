@@ -3,19 +3,22 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Diagram } from '@/app/store/diagram/types';
+import { User } from '@auth0/auth0-react';
+import { useUser } from '@auth0/nextjs-auth0/client';
 
 export default function DiagramList() {
   const [data, setData] = useState([] as Diagram[]);
   const [isLoading, setLoading] = useState(true);
+  const { user } = useUser();
 
   useEffect(() => {
-    fetch('https://api-erdiagrams.azurewebsites.net/diagrams')
+    fetch('https://api-erdiagrams.azurewebsites.net/diagrams/user/'+user?.nickname)
       .then((res) => res.json())
       .then((data) => {
         setData(data);
         setLoading(false);
       });
-  }, []);
+  }, [user]);
   return (
     <>
       {isLoading && (
