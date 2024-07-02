@@ -1,5 +1,5 @@
 'use client';
-import Board from '@/app/components/board/Board';
+import BoardNoGojs from '@/app/components/board/BoardNoGojs';
 import { Diagram } from '@/app/store/diagram/types';
 import { useEffect, useState } from 'react';
 
@@ -21,11 +21,10 @@ export default function Home({ params }: HomeProps) {
         setLoading(false);
       });
     console.log(diagram);
-  }, [diagram, params.id]);
-  return (
-    <>
-      {isLoading && <>Loading....</>}
-      {!isLoading && <Board diagram={diagram}></Board>}
-    </>
-  );
+  }, []);
+  if(isLoading) return <>Loading....</>
+  
+  if(!isLoading) return <BoardNoGojs diagram={diagram}></BoardNoGojs>
+   return <>Nop</>
+  
 }
