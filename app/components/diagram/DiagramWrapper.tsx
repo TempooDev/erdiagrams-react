@@ -8,6 +8,7 @@ import * as React from 'react';
 import { GuidedDraggingTool } from '../../utils/GuidedDraggingTool';
 
 import './Diagram.css';
+import { useEffect } from 'react';
 
 interface DiagramProps {
   nodeDataArray: Array<go.ObjectData>;
@@ -18,45 +19,26 @@ interface DiagramProps {
   onModelChange: (e: go.IncrementalData) => void;
 }
 
-export class DiagramWrapper extends React.Component<DiagramProps, {}> {
+export const DiagramWrapper = (props: DiagramProps) => {
   /**
    * Ref to keep a reference to the Diagram component, which provides access to the GoJS diagram via getDiagram().
    */
-  private diagramRef: React.RefObject<ReactDiagram>;
+  const diagramRef = React.useRef<ReactDiagram>(null);
 
-  private diagramStyle = { backgroundColor: '#eee' };
-
-  /** @internal */
-  constructor(props: DiagramProps) {
-    super(props);
-    this.diagramRef = React.createRef();
-  }
-
-  /**
-   * Get the diagram reference and add any desired diagram listeners.
-   * Typically the same function will be used for each listener, with the function using a switch statement to handle the events.
-   */
-  public componentDidMount() {
-    if (!this.diagramRef.current) return;
-    const diagram = this.diagramRef.current.getDiagram();
+  // add/remove listeners
+  // only done on mount, not any time there's a change to props.onDiagramEvent
+  useEffect(() => {
+    if (diagramRef.current === null) return;
+    const diagram = diagramRef.current.getDiagram();
     if (diagram instanceof go.Diagram) {
-      diagram.addDiagramListener('ChangedSelection', this.props.onDiagramEvent);
+      diagram.addDiagramListener('ChangedSelection', props.onDiagramEvent);
     }
-  }
-
-  /**
-   * Get the diagram reference and remove listeners that were added during mounting.
-   */
-  public componentWillUnmount() {
-    if (!this.diagramRef.current) return;
-    const diagram = this.diagramRef.current.getDiagram();
-    if (diagram instanceof go.Diagram) {
-      diagram.removeDiagramListener(
-        'ChangedSelection',
-        this.props.onDiagramEvent
-      );
-    }
-  }
+    return () => {
+      if (diagram instanceof go.Diagram) {
+        diagram.removeDiagramListener('ChangedSelection', props.onDiagramEvent);
+      }
+    };
+  }, []);
 
   /**
    * Diagram initialization method, which is passed to the ReactDiagram component.
@@ -64,7 +46,7 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
    * and maybe doing other initialization tasks like customizing tools.
    * The model's data should not be set here, as the ReactDiagram component handles that.
    */
-  private initDiagram(): go.Diagram {
+  const initDiagram = (): go.Diagram => {
     const $ = go.GraphObject.make;
     // set your license key here before creating the diagram: go.Diagram.licenseKey = "...";
     const diagram = $(go.Diagram, {
@@ -341,21 +323,19 @@ export class DiagramWrapper extends React.Component<DiagramProps, {}> {
     );
 
     return diagram;
-  }
+  };
 
-  public render() {
-    return (
-      <ReactDiagram
-        ref={this.diagramRef}
-        divClassName="diagram-component"
-        style={this.diagramStyle}
-        initDiagram={this.initDiagram}
-        nodeDataArray={this.props.nodeDataArray}
-        linkDataArray={this.props.linkDataArray}
-        modelData={this.props.modelData}
-        onModelChange={this.props.onModelChange}
-        skipsDiagramUpdate={this.props.skipsDiagramUpdate}
-      />
-    );
-  }
-}
+  return (
+    <ReactDiagram
+      ref={diagramRef}
+      divClassName="diagram-component"
+      style={{ backgroundColor: '#f7f9fc' }}
+      initDiagram={initDiagram}
+      nodeDataArray={props.nodeDataArray}
+      linkDataArray={props.linkDataArray}
+      modelData={props.modelData}
+      onModelChange={props.onModelChange}
+      skipsDiagramUpdate={props.skipsDiagramUpdate}
+    />
+  );
+};
