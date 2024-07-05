@@ -39,5 +39,5 @@ export default function Home({ params }: HomeProps) {
   //   };
   // }, [apiURL, connection]);
 
-  return <Board></Board>;
+  return <h1></h1>;
 }

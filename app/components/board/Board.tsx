@@ -33,8 +33,10 @@ const Board = ({ diagram }: DiagramProps) => {
     selectedData: null,
     skipsDiagramUpdate: false,
   });
+  const [keySelected, setKeySelected] = useState(0);
   useEffect(() => {
     // init maps
+    console.log(JSON.stringify(diagram));
     refreshNodeIndex(diagramData.nodeDataArray);
     refreshLinkIndex(diagramData.linkDataArray);
   }, []);
@@ -59,136 +61,138 @@ const Board = ({ diagram }: DiagramProps) => {
     });
   };
 
-  /**
-   * Handle any relevant DiagramEvents, in this case just selection changes.
-   * On ChangedSelection, find the corresponding data and set the selectedData state.
-   * @param e a GoJS DiagramEvent
-   */
-  const handleDiagramEvent = (e: go.DiagramEvent) => {
-    const name = e.name;
-    switch (name) {
-      case 'ChangedSelection': {
-        const sel = e.subject.first();
-        updateDiagramData((draft) => {
-          if (sel) {
-            if (sel instanceof go.Node) {
-              const idx = mapNodeKeyIdx.get(sel.key);
-              if (idx !== undefined && idx >= 0) {
-                const nd = draft.nodeDataArray[idx];
-                draft.selectedData = nd;
-              }
-            } else if (sel instanceof go.Link) {
-              const idx = mapLinkKeyIdx.get(sel.key);
-              if (idx !== undefined && idx >= 0) {
-                const ld = draft.linkDataArray[idx];
-                draft.selectedData = ld;
-              }
-            }
-          } else {
-            draft.selectedData = null;
-          }
-        });
-        break;
-      }
-      default:
-        break;
-    }
-  };
+  // /**
+  //  * Handle any relevant DiagramEvents, in this case just selection changes.
+  //  * On ChangedSelection, find the corresponding data and set the selectedData state.
+  //  * @param e a GoJS DiagramEvent
+  //  */
+  // const handleDiagramEvent = (e: go.DiagramEvent) => {
+  //   console.log('handleDiagramEvent');
+  //   const name = e.name;
+  //   switch (name) {
+  //     case 'ChangedSelection': {
+  //       const sel = e.subject.first();
+  //       updateDiagramData((draft) => {
+  //         if (sel) {
+  //           if (sel instanceof go.Node) {
+  //             const idx = mapNodeKeyIdx.get(sel.key);
+  //             if (idx !== undefined && idx >= 0) {
+  //               const nd = draft.nodeDataArray[idx];
+  //               draft.selectedData = nd;
+  //             }
+  //           } else if (sel instanceof go.Link) {
+  //             const idx = mapLinkKeyIdx.get(sel.key);
+  //             if (idx !== undefined && idx >= 0) {
+  //               const ld = draft.linkDataArray[idx];
+  //               draft.selectedData = ld;
+  //             }
+  //           }
+  //         } else {
+  //           draft.selectedData = null;
+  //         }
+  //       });
+  //       break;
+  //     }
+  //     default:
+  //       break;
+  //   }
+  // };
 
-  /**
-   * Handle GoJS model changes, which output an object of data changes via Model.toIncrementalData.
-   * This method iterates over those changes and updates state to keep in sync with the GoJS model.
-   * @param obj a JSON-formatted string
-   */
-  const handleModelChange = (obj: go.IncrementalData) => {
-    const insertedNodeKeys = obj.insertedNodeKeys;
-    const modifiedNodeData = obj.modifiedNodeData;
-    const removedNodeKeys = obj.removedNodeKeys;
-    const insertedLinkKeys = obj.insertedLinkKeys;
-    const modifiedLinkData = obj.modifiedLinkData;
-    const removedLinkKeys = obj.removedLinkKeys;
-    const modifiedModelData = obj.modelData;
+  // /**
+  //  * Handle GoJS model changes, which output an object of data changes via Model.toIncrementalData.
+  //  * This method iterates over those changes and updates state to keep in sync with the GoJS model.
+  //  * @param obj a JSON-formatted string
+  //  */
+  // const handleModelChange = (obj: go.IncrementalData) => {
+  //   console.log('handleModelChange');
+  //   const insertedNodeKeys = obj.insertedNodeKeys;
+  //   const modifiedNodeData = obj.modifiedNodeData;
+  //   const removedNodeKeys = obj.removedNodeKeys;
+  //   const insertedLinkKeys = obj.insertedLinkKeys;
+  //   const modifiedLinkData = obj.modifiedLinkData;
+  //   const removedLinkKeys = obj.removedLinkKeys;
+  //   const modifiedModelData = obj.modelData;
 
-    // maintain maps of modified data so insertions don't need slow lookups
-    const modifiedNodeMap = new Map();
-    const modifiedLinkMap = new Map();
-    updateDiagramData((draft) => {
-      let narr = draft.nodeDataArray;
-      if (modifiedNodeData) {
-        modifiedNodeData.forEach((nd) => {
-          modifiedNodeMap.set(nd.key, nd);
-          const idx = mapNodeKeyIdx.get(nd.key);
-          if (idx !== undefined && idx >= 0) {
-            narr[idx] = nd;
-            if (draft.selectedData && draft.selectedData.key === nd.key) {
-              draft.selectedData = nd;
-            }
-          }
-        });
-      }
-      if (insertedNodeKeys) {
-        insertedNodeKeys.forEach((key) => {
-          const nd = modifiedNodeMap.get(key);
-          const idx = mapNodeKeyIdx.get(key);
-          if (nd && idx === undefined) {
-            // nodes won't be added if they already exist
-            mapNodeKeyIdx.set(nd.key, narr.length);
-            narr.push(nd);
-          }
-        });
-      }
-      if (removedNodeKeys) {
-        narr = narr.filter((nd) => {
-          if (removedNodeKeys.includes(nd.key)) {
-            return false;
-          }
-          return true;
-        });
-        draft.nodeDataArray = narr;
-        refreshNodeIndex(narr);
-      }
+  //   // maintain maps of modified data so insertions don't need slow lookups
+  //   const modifiedNodeMap = new Map();
+  //   const modifiedLinkMap = new Map();
+  //   updateDiagramData((draft) => {
+  //     let narr = draft.nodeDataArray;
+  //     if (modifiedNodeData) {
+  //       modifiedNodeData.forEach((nd) => {
+  //         modifiedNodeMap.set(nd.key, nd);
+  //         const idx = mapNodeKeyIdx.get(nd.key);
+  //         if (idx !== undefined && idx >= 0) {
+  //           narr[idx] = nd;
+  //           if (draft.selectedData && draft.selectedData.key === nd.key) {
+  //             draft.selectedData = nd;
+  //           }
+  //         }
+  //       });
+  //     }
+  //     if (insertedNodeKeys) {
+  //       insertedNodeKeys.forEach((key) => {
+  //         const nd = modifiedNodeMap.get(key);
+  //         const idx = mapNodeKeyIdx.get(key);
+  //         if (nd && idx === undefined) {
+  //           // nodes won't be added if they already exist
+  //           mapNodeKeyIdx.set(nd.key, narr.length);
+  //           narr.push(nd);
+  //         }
+  //       });
+  //     }
+  //     if (removedNodeKeys) {
+  //       narr = narr.filter((nd) => {
+  //         if (removedNodeKeys.includes(nd.key)) {
+  //           return false;
+  //         }
+  //         return true;
+  //       });
+  //       draft.nodeDataArray = narr;
+  //       refreshNodeIndex(narr);
+  //     }
 
-      let larr = draft.linkDataArray;
-      if (modifiedLinkData) {
-        modifiedLinkData.forEach((ld) => {
-          modifiedLinkMap.set(ld.key, ld);
-          const idx = mapLinkKeyIdx.get(ld.key);
-          if (idx !== undefined && idx >= 0) {
-            larr[idx] = ld;
-            if (draft.selectedData && draft.selectedData.key === ld.key) {
-              draft.selectedData = ld;
-            }
-          }
-        });
-      }
-      if (insertedLinkKeys) {
-        insertedLinkKeys.forEach((key) => {
-          const ld = modifiedLinkMap.get(key);
-          const idx = mapLinkKeyIdx.get(key);
-          if (ld && idx === undefined) {
-            // links won't be added if they already exist
-            mapLinkKeyIdx.set(ld.key, larr.length);
-            larr.push(ld);
-          }
-        });
-      }
-      if (removedLinkKeys) {
-        larr = larr.filter((ld) => {
-          if (removedLinkKeys.includes(ld.key)) {
-            return false;
-          }
-          return true;
-        });
-        draft.linkDataArray = larr;
-        refreshLinkIndex(larr);
-      }
-      // handle model data changes, for now just replacing with the supplied object
-      if (modifiedModelData) {
-        draft.modelData = modifiedModelData;
-      }
-      draft.skipsDiagramUpdate = true; // the GoJS model already knows about these updates
-    });
-  };
+  //     let larr = draft.linkDataArray;
+  //     if (modifiedLinkData) {
+  //       modifiedLinkData.forEach((ld) => {
+  //         modifiedLinkMap.set(ld.key, ld);
+  //         const idx = mapLinkKeyIdx.get(ld.key);
+  //         if (idx !== undefined && idx >= 0) {
+  //           larr[idx] = ld;
+  //           if (draft.selectedData && draft.selectedData.key === ld.key) {
+  //             draft.selectedData = ld;
+  //           }
+  //         }
+  //       });
+  //     }
+  //     if (insertedLinkKeys) {
+  //       insertedLinkKeys.forEach((key) => {
+  //         const ld = modifiedLinkMap.get(key);
+  //         const idx = mapLinkKeyIdx.get(key);
+  //         if (ld && idx === undefined) {
+  //           // links won't be added if they already exist
+  //           mapLinkKeyIdx.set(ld.key, larr.length);
+  //           larr.push(ld);
+  //         }
+  //       });
+  //     }
+  //     if (removedLinkKeys) {
+  //       larr = larr.filter((ld) => {
+  //         if (removedLinkKeys.includes(ld.key)) {
+  //           return false;
+  //         }
+  //         return true;
+  //       });
+  //       draft.linkDataArray = larr;
+  //       refreshLinkIndex(larr);
+  //     }
+  //     // handle model data changes, for now just replacing with the supplied object
+  //     if (modifiedModelData) {
+  //       draft.modelData = modifiedModelData;
+  //     }
+  //     draft.skipsDiagramUpdate = true; // the GoJS model already knows about these updates
+  //   });
+  // };
 
   /**
    * Handle inspector changes, and on input field blurs, update node/link data state.
@@ -233,37 +237,34 @@ const Board = ({ diagram }: DiagramProps) => {
       draft.skipsDiagramUpdate = false;
     });
   };
-
+  if (keySelected !== 0) {
+    updateDiagramData((draft) => {
+      draft.selectedData = draft.nodeDataArray[keySelected];
+    });
+  }
   const selectedData = diagramData.selectedData;
   let inspector;
-  // if (selectedData !== null) {
-  //   inspector = (
-  //     <SelectionInspector
-  //       selectedData={diagramData.selectedData!}
-  //       onInspectorChange={handleInputChange}
-  //     />
-  //   );
-  // }
-
+  if (selectedData !== null) {
+    inspector = (
+      <SelectionInspector
+        selectedData={diagramData.selectedData!}
+        onInspectorChange={handleInputChange}
+      />
+    );
+  }
   return (
     <div>
-      <DiagramWrapper
+      {/* <DiagramWrapper
         nodeDataArray={diagramData.nodeDataArray}
         linkDataArray={diagramData.linkDataArray}
         modelData={diagramData.modelData}
         skipsDiagramUpdate={diagramData.skipsDiagramUpdate}
         onDiagramEvent={handleDiagramEvent}
         onModelChange={handleModelChange}
-      />
-      <label>
-        Allow Relinking?
-        <input
-          type="checkbox"
-          id="relink"
-          checked={diagramData.modelData.canRelink}
-          onChange={handleRelinkChange}
-        />
-      </label>
+      /> */}
+      {JSON.stringify(diagramData.nodeDataArray)}
+      {JSON.stringify(diagramData.linkDataArray)}
+      <input type="number" defaultValue={keySelected} />
       {inspector}
     </div>
   );
