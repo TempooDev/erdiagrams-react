@@ -17,14 +17,14 @@ export default function Home({ params }: HomeProps) {
   const [connection, setConnection] = useState<signalR.HubConnection | null>(
     null
   );
-  const apiURL = 'https://api-erdiagrams.azurewebsites.net/hub/board';
+  const apiURL = 'https://api-erdiagrams.azurewebsites.net/';
 
   useEffect(() => {
     const fetchData = async () => {
       if (!params.id) return;
       if (!isLoading) return;
 
-      fetch('https://api-erdiagrams.azurewebsites.net/diagrams/' + params.id)
+      fetch(apiURL + '/diagrams/' + params.id)
         .then((res) => res.json())
         .then((data) => {
           setDiagram(data);
@@ -35,7 +35,7 @@ export default function Home({ params }: HomeProps) {
 
     const initSignalRConnection = async () => {
       const connection = new HubConnectionBuilder()
-        .withUrl(apiURL)
+        .withUrl(apiURL + 'hub/board')
         .withAutomaticReconnect()
         .build();
 
