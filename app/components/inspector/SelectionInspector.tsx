@@ -3,15 +3,14 @@ import * as React from 'react';
 import './Inspector.css';
 import { useEffect, useState } from 'react';
 import { LinkData, NodeData } from '@/app/store/diagram/types';
-import { useDiagramStore } from '@/app/providers/diagram-store-provider';
 import { KeyService } from '@/app/utils/KeyServices';
 import { ObjectData } from 'gojs';
 
 interface SelectionInspectorProps {
-  selectedData: go.ObjectData;
+  selectedData: NodeData;
   links: LinkData[];
   nodeDataArray: NodeData[];
-  onInspectorChange: (data: go.ObjectData, links: LinkData[]) => void;
+  onInspectorChange: (data: NodeData, links: LinkData[]) => void;
 }
 
 const SelectionInspector: React.FC<SelectionInspectorProps> = (
@@ -28,9 +27,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
     useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === 'Escape') {
-          setData({
-            key: -1,
-          });
+          //todo limpiar
         }
       };
       if (props.selectedData.key !== data.key) {
@@ -171,9 +168,7 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
       });
       setLinks([...filteredLinks, ...linkData]);
       props.onInspectorChange(data, linkData);
-      setData({
-        key: -1,
-      });
+      //todo: limpiar selected data
       setLinkData([
         {
           key: -1,
@@ -272,8 +267,10 @@ const SelectionInspector: React.FC<SelectionInspectorProps> = (
                       ...data.items,
                       {
                         name: '',
-                        isKey: false,
+                        iskey: false,
                         type: '',
+                        figure: '',
+                        color: '',
                       },
                     ],
                   });

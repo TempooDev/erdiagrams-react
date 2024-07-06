@@ -1,32 +1,31 @@
 'use client';
 import * as go from 'gojs';
-import { produce } from 'immer';
 import * as React from 'react';
-
-import { DiagramWrapper } from '../diagram/DiagramWrapper';
 
 import './Board.css';
 
 import SelectionInspector from '../inspector/SelectionInspector';
 import { Diagram, LinkData, NodeData } from '@/app/store/diagram/types';
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useImmer } from 'use-immer';
 
 interface BoardState {
-  nodeDataArray: go.ObjectData[];
-  linkDataArray: go.ObjectData[];
+  diagramName: string;
+  nodeDataArray: NodeData[];
+  linkDataArray: LinkData[];
   modelData: go.ObjectData;
-  selectedData: go.ObjectData | null;
+  selectedData: NodeData | null;
   skipsDiagramUpdate: boolean;
 }
 
-type DiagramProps = { diagram?: Diagram };
-const mapLinkKeyIdx = new Map();
-const mapNodeKeyIdx = new Map();
+interface DiagramProps {
+  diagram: Diagram;
+}
 
-const Board = ({ diagram }: DiagramProps) => {
+const Board: React.FC<DiagramProps> = ({ diagram }) => {
   // Diagram state
   const [diagramData, updateDiagramData] = useImmer<BoardState>({
+    diagramName: diagram!.name,
     nodeDataArray: diagram!.nodeDataArray,
     linkDataArray: diagram!.linkDataArray,
     modelData: {},
@@ -34,239 +33,134 @@ const Board = ({ diagram }: DiagramProps) => {
     skipsDiagramUpdate: false,
   });
   const [keySelected, setKeySelected] = useState(0);
-  useEffect(() => {
-    // init maps
-    console.log(JSON.stringify(diagram));
-    refreshNodeIndex(diagramData.nodeDataArray);
-    refreshLinkIndex(diagramData.linkDataArray);
-  }, []);
 
-  /**
-   * Update map of node keys to their index in the array.
-   */
-  const refreshNodeIndex = (nodeArr: go.ObjectData[]) => {
-    mapNodeKeyIdx.clear();
-    nodeArr.forEach((n, idx) => {
-      mapNodeKeyIdx.set(n.key, idx);
-    });
-  };
+  const handleInspectorChange = (newData: NodeData, links: LinkData[]) => {
+    console.log('newData', newData);
 
-  /**
-   * Update map of link keys to their index in the array.
-   */
-  const refreshLinkIndex = (linkArr: go.ObjectData[]) => {
-    mapLinkKeyIdx.clear();
-    linkArr.forEach((l, idx) => {
-      mapLinkKeyIdx.set(l.key, idx);
-    });
-  };
-
-  // /**
-  //  * Handle any relevant DiagramEvents, in this case just selection changes.
-  //  * On ChangedSelection, find the corresponding data and set the selectedData state.
-  //  * @param e a GoJS DiagramEvent
-  //  */
-  // const handleDiagramEvent = (e: go.DiagramEvent) => {
-  //   console.log('handleDiagramEvent');
-  //   const name = e.name;
-  //   switch (name) {
-  //     case 'ChangedSelection': {
-  //       const sel = e.subject.first();
-  //       updateDiagramData((draft) => {
-  //         if (sel) {
-  //           if (sel instanceof go.Node) {
-  //             const idx = mapNodeKeyIdx.get(sel.key);
-  //             if (idx !== undefined && idx >= 0) {
-  //               const nd = draft.nodeDataArray[idx];
-  //               draft.selectedData = nd;
-  //             }
-  //           } else if (sel instanceof go.Link) {
-  //             const idx = mapLinkKeyIdx.get(sel.key);
-  //             if (idx !== undefined && idx >= 0) {
-  //               const ld = draft.linkDataArray[idx];
-  //               draft.selectedData = ld;
-  //             }
-  //           }
-  //         } else {
-  //           draft.selectedData = null;
-  //         }
-  //       });
-  //       break;
-  //     }
-  //     default:
-  //       break;
-  //   }
-  // };
-
-  // /**
-  //  * Handle GoJS model changes, which output an object of data changes via Model.toIncrementalData.
-  //  * This method iterates over those changes and updates state to keep in sync with the GoJS model.
-  //  * @param obj a JSON-formatted string
-  //  */
-  // const handleModelChange = (obj: go.IncrementalData) => {
-  //   console.log('handleModelChange');
-  //   const insertedNodeKeys = obj.insertedNodeKeys;
-  //   const modifiedNodeData = obj.modifiedNodeData;
-  //   const removedNodeKeys = obj.removedNodeKeys;
-  //   const insertedLinkKeys = obj.insertedLinkKeys;
-  //   const modifiedLinkData = obj.modifiedLinkData;
-  //   const removedLinkKeys = obj.removedLinkKeys;
-  //   const modifiedModelData = obj.modelData;
-
-  //   // maintain maps of modified data so insertions don't need slow lookups
-  //   const modifiedNodeMap = new Map();
-  //   const modifiedLinkMap = new Map();
-  //   updateDiagramData((draft) => {
-  //     let narr = draft.nodeDataArray;
-  //     if (modifiedNodeData) {
-  //       modifiedNodeData.forEach((nd) => {
-  //         modifiedNodeMap.set(nd.key, nd);
-  //         const idx = mapNodeKeyIdx.get(nd.key);
-  //         if (idx !== undefined && idx >= 0) {
-  //           narr[idx] = nd;
-  //           if (draft.selectedData && draft.selectedData.key === nd.key) {
-  //             draft.selectedData = nd;
-  //           }
-  //         }
-  //       });
-  //     }
-  //     if (insertedNodeKeys) {
-  //       insertedNodeKeys.forEach((key) => {
-  //         const nd = modifiedNodeMap.get(key);
-  //         const idx = mapNodeKeyIdx.get(key);
-  //         if (nd && idx === undefined) {
-  //           // nodes won't be added if they already exist
-  //           mapNodeKeyIdx.set(nd.key, narr.length);
-  //           narr.push(nd);
-  //         }
-  //       });
-  //     }
-  //     if (removedNodeKeys) {
-  //       narr = narr.filter((nd) => {
-  //         if (removedNodeKeys.includes(nd.key)) {
-  //           return false;
-  //         }
-  //         return true;
-  //       });
-  //       draft.nodeDataArray = narr;
-  //       refreshNodeIndex(narr);
-  //     }
-
-  //     let larr = draft.linkDataArray;
-  //     if (modifiedLinkData) {
-  //       modifiedLinkData.forEach((ld) => {
-  //         modifiedLinkMap.set(ld.key, ld);
-  //         const idx = mapLinkKeyIdx.get(ld.key);
-  //         if (idx !== undefined && idx >= 0) {
-  //           larr[idx] = ld;
-  //           if (draft.selectedData && draft.selectedData.key === ld.key) {
-  //             draft.selectedData = ld;
-  //           }
-  //         }
-  //       });
-  //     }
-  //     if (insertedLinkKeys) {
-  //       insertedLinkKeys.forEach((key) => {
-  //         const ld = modifiedLinkMap.get(key);
-  //         const idx = mapLinkKeyIdx.get(key);
-  //         if (ld && idx === undefined) {
-  //           // links won't be added if they already exist
-  //           mapLinkKeyIdx.set(ld.key, larr.length);
-  //           larr.push(ld);
-  //         }
-  //       });
-  //     }
-  //     if (removedLinkKeys) {
-  //       larr = larr.filter((ld) => {
-  //         if (removedLinkKeys.includes(ld.key)) {
-  //           return false;
-  //         }
-  //         return true;
-  //       });
-  //       draft.linkDataArray = larr;
-  //       refreshLinkIndex(larr);
-  //     }
-  //     // handle model data changes, for now just replacing with the supplied object
-  //     if (modifiedModelData) {
-  //       draft.modelData = modifiedModelData;
-  //     }
-  //     draft.skipsDiagramUpdate = true; // the GoJS model already knows about these updates
-  //   });
-  // };
-
-  /**
-   * Handle inspector changes, and on input field blurs, update node/link data state.
-   * @param path the path to the property being modified
-   * @param value the new value of that property
-   * @param isBlur whether the input event was a blur, indicating the edit is complete
-   */
-  const handleInputChange = (path: string, value: any, isBlur: boolean) => {
     updateDiagramData((draft) => {
-      if (!draft.selectedData) return;
-      const data = draft.selectedData;
-      data[path] = value;
-      if (isBlur) {
-        const key = data.key;
-        if (key < 0) {
-          // negative keys are links
-          const idx = mapLinkKeyIdx.get(key);
-          if (idx !== undefined && idx >= 0) {
-            draft.linkDataArray[idx] = data;
-            draft.skipsDiagramUpdate = false;
-          }
-        } else {
-          const idx = mapNodeKeyIdx.get(key);
-          if (idx !== undefined && idx >= 0) {
-            draft.nodeDataArray[idx] = data;
-            draft.skipsDiagramUpdate = false;
-          }
-        }
+      draft.selectedData = null;
+      const index = draft.nodeDataArray.findIndex(
+        (node) => node.key === newData.key
+      );
+      if (index !== -1) {
+        draft.nodeDataArray[index] = newData;
       }
     });
   };
+  const handleSelectNode = (event: React.FormEvent) => {
+    event.preventDefault();
+    console.log('keySelected', keySelected);
+    const node = diagramData.nodeDataArray.find((x) => x.key === keySelected);
+    if (node) {
+      updateDiagramData((draft) => {
+        draft.selectedData = node;
+      });
+    }
+    console.log('selectedData', node?.name);
+  };
 
-  /**
-   * Handle changes to the checkbox on whether to allow relinking.
-   * @param e a change event from the checkbox
-   */
-  const handleRelinkChange = (e: any) => {
-    const target = e.target;
-    const value = target.checked;
+  const saveDiagram = async () => {
+    // Sustituye las propiedades de diagram con nodeDataArray y linkDataArray de diagramData
+    diagram.nodeDataArray = diagramData.nodeDataArray;
+    diagram.linkDataArray = diagramData.linkDataArray;
+    diagram.name = diagramData.diagramName;
+    const url = `https://api-erdiagrams.azurewebsites.net/diagrams/${diagram.diagramId}`;
+
+    const response = await fetch(url, {
+      method: 'PUT', // Asumiendo que el endpoint requiere un método PUT para actualizar
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(diagram), // Envía el diagrama actual como cuerpo de la solicitud
+    });
+
+    if (response.ok) {
+      // Manejo de la respuesta exitosa
+      console.log('Diagrama guardado con éxito');
+    } else {
+      // Manejo de errores
+      console.error(
+        'Error al guardar el diagrama ',
+        response.status,
+        response.statusText
+      );
+    }
+  };
+
+  const [inputValue, setInputValue] = useState(diagramData.diagramName);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
     updateDiagramData((draft) => {
-      draft.modelData = { canRelink: value };
-      draft.skipsDiagramUpdate = false;
+      draft.diagramName = inputValue;
     });
   };
-  if (keySelected !== 0) {
-    updateDiagramData((draft) => {
-      draft.selectedData = draft.nodeDataArray[keySelected];
-    });
-  }
+
   const selectedData = diagramData.selectedData;
   let inspector;
+
   if (selectedData !== null) {
     inspector = (
       <SelectionInspector
         selectedData={diagramData.selectedData!}
-        onInspectorChange={handleInputChange}
+        links={diagramData.linkDataArray}
+        nodeDataArray={diagramData.nodeDataArray}
+        onInspectorChange={handleInspectorChange}
       />
     );
   }
+
   return (
-    <div>
-      {/* <DiagramWrapper
-        nodeDataArray={diagramData.nodeDataArray}
-        linkDataArray={diagramData.linkDataArray}
-        modelData={diagramData.modelData}
-        skipsDiagramUpdate={diagramData.skipsDiagramUpdate}
-        onDiagramEvent={handleDiagramEvent}
-        onModelChange={handleModelChange}
-      /> */}
-      {JSON.stringify(diagramData.nodeDataArray)}
-      {JSON.stringify(diagramData.linkDataArray)}
-      <input type="number" defaultValue={keySelected} />
-      {inspector}
+    <div className="flex flex-col gap-4">
+      <div className="flex justify-between items-center">
+        <button
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+          onClick={saveDiagram}
+        >
+          Guardar
+        </button>
+        <input
+          className="border-2 border-gray-300 p-2 rounded"
+          type="text"
+          value={inputValue}
+          onChange={handleInputChange}
+        />
+        <form onSubmit={handleSelectNode}>
+          <input
+            type="number"
+            placeholder="ID Nodo"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const key = parseInt(e.target.value);
+              updateDiagramData((draft) => {
+                draft.selectedData = null;
+              });
+              setKeySelected(key);
+            }}
+          ></input>
+          <button type="submit">Select Node</button>
+        </form>
+      </div>
+      <div className="flex justify-between items-center">
+        <div className="flex-1">
+          <div className="card w-96 bg-base-100 shadow-xl">
+            <div className="card-body">
+              <h2 className="card-title"> NODE DATA ARRAY !</h2>
+              <span>{JSON.stringify(diagramData.nodeDataArray)}</span>
+            </div>
+          </div>
+          <div className="card w-96 bg-base-100 shadow-xl">
+            <div className="card-body">
+              <h2 className="card-title"> LINK DATA ARRAY !</h2>
+              <span>{JSON.stringify(diagramData.linkDataArray)}</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex-1 m-2">
+          {selectedData && <div className="modal-box">{inspector}</div>}
+        </div>
+      </div>
     </div>
   );
 };
+
 export default Board;
