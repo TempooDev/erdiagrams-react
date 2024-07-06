@@ -1,278 +1,166 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 'use client';
 import * as go from 'gojs';
-import { produce } from 'immer';
 import * as React from 'react';
-
-import { DiagramWrapper } from '../diagram/DiagramWrapper';
 
 import './Board.css';
 
 import SelectionInspector from '../inspector/SelectionInspector';
 import { Diagram, LinkData, NodeData } from '@/app/store/diagram/types';
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useImmer } from 'use-immer';
 
 interface BoardState {
-  selectedData: go.ObjectData | null;
-  nodeDataArray: go.ObjectData[];
-  linkDataArray: go.ObjectData[];
+  diagramName: string;
+  nodeDataArray: NodeData[];
+  linkDataArray: LinkData[];
   modelData: go.ObjectData;
+  selectedData: NodeData | null;
   skipsDiagramUpdate: boolean;
 }
 
-type DiagramProps = { diagram?: Diagram };
+interface DiagramProps {
+  diagram: Diagram;
+}
 
-const Board = ({ diagram }: DiagramProps) => {
-  const [selectedData, setSelectedData] = useState<go.ObjectData | null>(null);
-  const [nodeDataArray, setNodeDataArray] = useState<go.ObjectData[]>(
-    diagram?.nodeDataArray || []
-  );
-  const [linkDataArray, setLinkDataArray] = useState<go.ObjectData[]>(
-    diagram?.linkDataArray || []
-  );
-  const [modelData, setModelData] = useState<go.ObjectData>({
-    canRelink: true,
+const Board: React.FC<DiagramProps> = ({ diagram }) => {
+  // Diagram state
+  const [diagramData, updateDiagramData] = useImmer<BoardState>({
+    diagramName: diagram!.name,
+    nodeDataArray: diagram!.nodeDataArray,
+    linkDataArray: diagram!.linkDataArray,
+    modelData: {},
+    selectedData: null,
+    skipsDiagramUpdate: false,
   });
-  const [skipsDiagramUpdate, setSkipsDiagramUpdate] = useState<boolean>(true);
-  const [keySelected, setKeySelected] = useState<number>(-1);
+  const [keySelected, setKeySelected] = useState(0);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const mapNodeKeyIdx = new Map<go.Key, number>();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const mapLinkKeyIdx = new Map<go.Key, number>();
+  const handleInspectorChange = (newData: NodeData, links: LinkData[]) => {
+    console.log('newData', newData);
 
-  const refreshNodeIndex = useCallback(
-    (nodeArr: Array<go.ObjectData>) => {
-      mapNodeKeyIdx.clear();
-      nodeArr.forEach((n, idx) => {
-        mapNodeKeyIdx.set(n.key, idx);
-      });
-    },
-    [mapNodeKeyIdx]
-  );
-
-  const refreshLinkIndex = useCallback(
-    (linkArr: Array<go.ObjectData>) => {
-      mapLinkKeyIdx.clear();
-      linkArr.forEach((l, idx) => {
-        mapLinkKeyIdx.set(l.key, idx);
-      });
-    },
-    [mapLinkKeyIdx]
-  );
-
-  useEffect(() => {
-    if (diagram) {
-      setNodeDataArray(diagram.nodeDataArray);
-      setLinkDataArray(diagram.linkDataArray);
-      refreshNodeIndex(diagram.nodeDataArray);
-      refreshLinkIndex(diagram.linkDataArray);
-    }
-  }, [diagram, refreshNodeIndex, refreshLinkIndex]);
-
-  const handleDiagramEvent = useCallback(
-    (e: go.DiagramEvent) => {
-      const name = e.name;
-      if (name === 'ChangedSelection') {
-        const sel = e.subject.first();
-        if (sel) {
-          if (sel instanceof go.Node) {
-            const idx = mapNodeKeyIdx.get(sel.key);
-            if (idx !== undefined && idx >= 0) {
-              const nd = nodeDataArray[idx];
-              setSelectedData(nd);
-              setKeySelected(nd.key);
-            }
-          } else if (sel instanceof go.Link) {
-            const idx = mapLinkKeyIdx.get(sel.key);
-            if (idx !== undefined && idx >= 0) {
-              const ld = linkDataArray[idx];
-              setSelectedData(ld);
-              setKeySelected(ld.key);
-            }
-          }
-        } else {
-          setSelectedData(null);
-        }
+    updateDiagramData((draft) => {
+      draft.selectedData = null;
+      const index = draft.nodeDataArray.findIndex(
+        (node) => node.key === newData.key
+      );
+      if (index !== -1) {
+        draft.nodeDataArray[index] = newData;
       }
-    },
-    [mapNodeKeyIdx, nodeDataArray, mapLinkKeyIdx, linkDataArray]
-  );
-
-  const handleModelChange = useCallback(
-    (obj: go.IncrementalData) => {
-      const insertedNodeKeys = obj.insertedNodeKeys;
-      const modifiedNodeData = obj.modifiedNodeData;
-      const removedNodeKeys = obj.removedNodeKeys;
-      const insertedLinkKeys = obj.insertedLinkKeys;
-      const modifiedLinkData = obj.modifiedLinkData;
-      const removedLinkKeys = obj.removedLinkKeys;
-      const modifiedModelData = obj.modelData;
-
-      // maintain maps of modified data so insertions don't need slow lookups
-      const modifiedNodeMap = new Map<go.Key, go.ObjectData>();
-      const modifiedLinkMap = new Map<go.Key, go.ObjectData>();
-
-      produce((draft: BoardState) => {
-        let narr = draft.nodeDataArray!;
-        if (modifiedNodeData) {
-          modifiedNodeData.forEach((nd: go.ObjectData) => {
-            modifiedNodeMap.set(nd.key, nd);
-            const idx = mapNodeKeyIdx.get(nd.key);
-            if (idx !== undefined && idx >= 0) {
-              narr[idx] = nd;
-              if (draft.selectedData && draft.selectedData.key === nd.key) {
-                draft.selectedData = nd;
-              }
-            }
-          });
-        }
-        if (insertedNodeKeys) {
-          insertedNodeKeys.forEach((key: go.Key) => {
-            const nd = modifiedNodeMap.get(key);
-            const idx = mapNodeKeyIdx.get(key);
-            if (nd && idx === undefined) {
-              // nodes won't be added if they already exist
-              mapNodeKeyIdx.set(nd.key, narr.length);
-              narr.push(nd);
-            }
-          });
-        }
-        if (removedNodeKeys) {
-          narr = narr.filter((nd: go.ObjectData) => {
-            if (removedNodeKeys.includes(nd.key)) {
-              return false;
-            }
-            return true;
-          });
-          draft.nodeDataArray = narr;
-          refreshNodeIndex(narr);
-        }
-
-        let larr = draft.linkDataArray!;
-        if (modifiedLinkData) {
-          modifiedLinkData.forEach((ld: go.ObjectData) => {
-            modifiedLinkMap.set(ld.key, ld);
-            const idx = mapLinkKeyIdx.get(ld.key);
-            if (idx !== undefined && idx >= 0) {
-              larr[idx] = ld;
-              if (draft.selectedData && draft.selectedData.key === ld.key) {
-                draft.selectedData = ld;
-              }
-            }
-          });
-        }
-        if (insertedLinkKeys) {
-          insertedLinkKeys.forEach((key: go.Key) => {
-            const ld = modifiedLinkMap.get(key);
-            const idx = mapLinkKeyIdx.get(key);
-            if (ld && idx === undefined) {
-              // links won't be added if they already exist
-              mapLinkKeyIdx.set(ld.key, larr.length);
-              larr.push(ld);
-            }
-          });
-        }
-        if (removedLinkKeys) {
-          larr = larr.filter((ld: go.ObjectData) => {
-            if (removedLinkKeys.includes(ld.key)) {
-              return false;
-            }
-            return true;
-          });
-          draft.linkDataArray = larr;
-          refreshLinkIndex(larr);
-        }
-        // handle model data changes, for now just replacing with the supplied object
-        if (modifiedModelData) {
-          draft.modelData = modifiedModelData;
-        }
-        draft.skipsDiagramUpdate = true; // the GoJS model already knows about these updates
+    });
+  };
+  const handleSelectNode = (event: React.FormEvent) => {
+    event.preventDefault();
+    console.log('keySelected', keySelected);
+    const node = diagramData.nodeDataArray.find((x) => x.key === keySelected);
+    if (node) {
+      updateDiagramData((draft) => {
+        draft.selectedData = node;
       });
-    },
-    [mapLinkKeyIdx, mapNodeKeyIdx, refreshLinkIndex, refreshNodeIndex]
-  );
+    }
+    console.log('selectedData', node?.name);
+  };
 
-  const handleInputChange = useCallback(
-    (path: string, value: string, isBlur: boolean) => {
-      produce((draft: BoardState) => {
-        const data = draft.selectedData as go.ObjectData; // only reached if selectedData isn't null
-        data[path] = value;
-        if (isBlur) {
-          const key = data.key;
-          if (key < 0) {
-            // negative keys are links
-            const idx = mapLinkKeyIdx.get(key);
-            if (idx !== undefined && idx >= 0) {
-              draft.linkDataArray![idx] = data;
-              draft.skipsDiagramUpdate = false;
-            }
-          } else {
-            const idx = mapNodeKeyIdx.get(key);
-            if (idx !== undefined && idx >= 0) {
-              draft.nodeDataArray![idx] = data;
-              draft.skipsDiagramUpdate = false;
-            }
-          }
-        }
-      });
+  const saveDiagram = async () => {
+    // Sustituye las propiedades de diagram con nodeDataArray y linkDataArray de diagramData
+    diagram.nodeDataArray = diagramData.nodeDataArray;
+    diagram.linkDataArray = diagramData.linkDataArray;
+    diagram.name = diagramData.diagramName;
+    const url = `https://api-erdiagrams.azurewebsites.net/diagrams/${diagram.diagramId}`;
 
-      setKeySelected(-1);
-    },
-    [mapLinkKeyIdx, mapNodeKeyIdx]
-  );
+    const response = await fetch(url, {
+      method: 'PUT', // Asumiendo que el endpoint requiere un método PUT para actualizar
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(diagram), // Envía el diagrama actual como cuerpo de la solicitud
+    });
 
-  const handleRelinkChange = useCallback((e: any) => {
-    const target = e.target;
-    const value = target.checked;
-    setModelData({ canRelink: value });
-    setSkipsDiagramUpdate(false);
-  }, []);
+    if (response.ok) {
+      // Manejo de la respuesta exitosa
+      console.log('Diagrama guardado con éxito');
+    } else {
+      // Manejo de errores
+      console.error(
+        'Error al guardar el diagrama ',
+        response.status,
+        response.statusText
+      );
+    }
+  };
 
-  const handleInspectorChange = useCallback(
-    (newData: go.ObjectData, links: LinkData[]) => {
-      // Crear un objeto IncrementalData que describe los cambios
-      const obj: go.IncrementalData = {
-        modifiedNodeData: [newData], // Supongamos que estás modificando un nodo
-        modifiedLinkData: links, // Supongamos que estás modificando un enlace
-        // Puedes agregar aquí cualquier otro cambio que necesites
-      };
-      console.log(JSON.stringify(nodeDataArray));
+  const [inputValue, setInputValue] = useState(diagramData.diagramName);
 
-      // Llamar a handleModelChange para actualizar el diagrama
-      handleModelChange(obj);
-    },
-    [handleModelChange, nodeDataArray]
-  );
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+    updateDiagramData((draft) => {
+      draft.diagramName = inputValue;
+    });
+  };
 
+  const selectedData = diagramData.selectedData;
   let inspector;
-  if (keySelected > 0) {
+
+  if (selectedData !== null) {
     inspector = (
       <SelectionInspector
-        links={linkDataArray as LinkData[]}
-        nodeDataArray={nodeDataArray as NodeData[]}
-        selectedData={selectedData!}
+        selectedData={diagramData.selectedData!}
+        links={diagramData.linkDataArray}
+        nodeDataArray={diagramData.nodeDataArray}
         onInspectorChange={handleInspectorChange}
       />
     );
   }
 
   return (
-    <div className="flex flex-row">
-      <div className="basis-1/2">
-        <DiagramWrapper
-          nodeDataArray={nodeDataArray}
-          linkDataArray={linkDataArray}
-          modelData={modelData}
-          skipsDiagramUpdate={skipsDiagramUpdate}
-          onDiagramEvent={handleDiagramEvent}
-          onModelChange={handleModelChange}
+    <div className="flex flex-col gap-4">
+      <div className="flex justify-between items-center">
+        <button
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+          onClick={saveDiagram}
+        >
+          Guardar
+        </button>
+        <input
+          className="border-2 border-gray-300 p-2 rounded"
+          type="text"
+          value={inputValue}
+          onChange={handleInputChange}
         />
+        <form onSubmit={handleSelectNode}>
+          <input
+            type="number"
+            placeholder="ID Nodo"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const key = parseInt(e.target.value);
+              updateDiagramData((draft) => {
+                draft.selectedData = null;
+              });
+              setKeySelected(key);
+            }}
+          ></input>
+          <button type="submit">Select Node</button>
+        </form>
       </div>
-      <div className="basis-1/2 items-center">
-        {keySelected > 0 && <div className="modal-box">{inspector}</div>}
+      <div className="flex justify-between items-center">
+        <div className="flex-1">
+          <div className="card w-96 bg-base-100 shadow-xl">
+            <div className="card-body">
+              <h2 className="card-title"> NODE DATA ARRAY !</h2>
+              <span>{JSON.stringify(diagramData.nodeDataArray)}</span>
+            </div>
+          </div>
+          <div className="card w-96 bg-base-100 shadow-xl">
+            <div className="card-body">
+              <h2 className="card-title"> LINK DATA ARRAY !</h2>
+              <span>{JSON.stringify(diagramData.linkDataArray)}</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex-1 m-2">
+          {selectedData && <div className="modal-box">{inspector}</div>}
+        </div>
       </div>
     </div>
   );
 };
+
 export default Board;
