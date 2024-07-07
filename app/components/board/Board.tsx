@@ -20,9 +20,10 @@ interface BoardState {
 
 interface DiagramProps {
   diagram: Diagram;
+  updateDiagram: (diagram: Diagram) => void;
 }
 
-const Board: React.FC<DiagramProps> = ({ diagram }) => {
+const Board: React.FC<DiagramProps> = ({ diagram, updateDiagram }) => {
   // Diagram state
   const [diagramData, updateDiagramData] = useImmer<BoardState>({
     diagramName: diagram!.name,
@@ -33,6 +34,7 @@ const Board: React.FC<DiagramProps> = ({ diagram }) => {
     skipsDiagramUpdate: false,
   });
   const [keySelected, setKeySelected] = useState(0);
+  const [isEdited, setIsEdited] = useState(false);
 
   const handleInspectorChange = (newData: NodeData, links: LinkData[]) => {
     console.log('newData', newData);
@@ -46,6 +48,13 @@ const Board: React.FC<DiagramProps> = ({ diagram }) => {
         draft.nodeDataArray[index] = newData;
       }
     });
+    diagram.nodeDataArray = diagramData.nodeDataArray;
+    diagram.linkDataArray = diagramData.linkDataArray;
+    diagram.name = diagramData.diagramName;
+    updateDiagram(diagram);
+    if (!isEdited) {
+      setIsEdited(true);
+    }
   };
   const handleSelectNode = (event: React.FormEvent) => {
     event.preventDefault();
@@ -85,6 +94,10 @@ const Board: React.FC<DiagramProps> = ({ diagram }) => {
         response.statusText
       );
     }
+    updateDiagram(diagram);
+    if (isEdited) {
+      setIsEdited(false);
+    }
   };
 
   const [inputValue, setInputValue] = useState(diagramData.diagramName);
@@ -94,6 +107,13 @@ const Board: React.FC<DiagramProps> = ({ diagram }) => {
     updateDiagramData((draft) => {
       draft.diagramName = inputValue;
     });
+    diagram.nodeDataArray = diagramData.nodeDataArray;
+    diagram.linkDataArray = diagramData.linkDataArray;
+    diagram.name = diagramData.diagramName;
+    updateDiagram(diagram);
+    if (!isEdited) {
+      setIsEdited(true);
+    }
   };
 
   const selectedData = diagramData.selectedData;
@@ -116,6 +136,7 @@ const Board: React.FC<DiagramProps> = ({ diagram }) => {
         <button
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
           onClick={saveDiagram}
+          disabled={!isEdited}
         >
           Guardar
         </button>

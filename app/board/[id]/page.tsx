@@ -13,7 +13,6 @@ interface HomeProps {
 export default function Home({ params }: HomeProps) {
   const [diagram, setDiagram] = useState<Diagram | undefined>(undefined);
   const [isLoading, setLoading] = useState(true);
-
   const [connection, setConnection] = useState<signalR.HubConnection | null>(
     null
   );
@@ -23,13 +22,19 @@ export default function Home({ params }: HomeProps) {
     const fetchData = async () => {
       if (!params.id) return;
       if (!isLoading) return;
-
-      fetch(apiURL + '/diagrams/' + params.id)
-        .then((res) => res.json())
-        .then((data) => {
-          setDiagram(data);
+      if (connection) {
+        connection.on('receiveDiagram', (diagram) => {
+          setDiagram(diagram);
           setLoading(false);
         });
+      } else {
+        fetch(apiURL + '/diagrams/' + params.id)
+          .then((res) => res.json())
+          .then((data) => {
+            setDiagram(data);
+            setLoading(false);
+          });
+      }
       console.log(diagram);
     };
 
@@ -60,8 +65,12 @@ export default function Home({ params }: HomeProps) {
     };
   }, [params.id]); // Asegúrate de incluir params.id si su valor puede cambiar y afectar la lógica de carga
 
+  const updateDiagram = (diagram: Diagram) => {
+    connection?.invoke('sendDiagram', diagram);
+  };
   if (isLoading) return <>Loading....</>;
 
-  if (diagram) return <Board diagram={diagram}></Board>;
+  if (diagram)
+    return <Board diagram={diagram} updateDiagram={updateDiagram}></Board>;
   return <>No existe</>;
 }

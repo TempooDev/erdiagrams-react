@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Diagram } from '@/app/store/diagram/types';
 import { useUser } from '@auth0/nextjs-auth0/client';
-import { headers } from 'next/headers';
 
 interface ListProps {
   token: string | undefined;
@@ -32,6 +31,7 @@ export default function DiagramList(props: ListProps) {
         });
     }
   }, [user, props.token]);
+
   return (
     <>
       {isLoading && user && (
