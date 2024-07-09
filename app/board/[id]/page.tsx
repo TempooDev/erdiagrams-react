@@ -63,7 +63,7 @@ export default function Home({ params }: HomeProps) {
     return () => {
       connection?.stop().then(() => console.log('SignalR Disconnected'));
     };
-  }, [params.id]); // Asegúrate de incluir params.id si su valor puede cambiar y afectar la lógica de carga
+  }, [params.id, diagram, isLoading, connection]);
 
   const updateDiagram = (diagram: Diagram) => {
     connection?.invoke('sendDiagram', diagram);
